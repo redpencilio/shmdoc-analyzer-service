@@ -7,6 +7,7 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
+from .column import Column
 
 def get_types():
     return {bool: "bool", int: "int", float: "float", str: "str"}
@@ -130,6 +131,9 @@ def export_json(filename, data):
 #input_file = "dwca-est_grey_seals_00-16-v1.1/event.txt"
 
 def analyze(input_file):
+
+    columns = []
+
     # reading csv file
     data = pd.read_csv(input_file, sep=predict_seperator(input_file))
     data_info = dict()  # Contains the info about each column
@@ -137,29 +141,40 @@ def analyze(input_file):
 
     # finding the type of each column
     for column in data:
+        col_obj = Column(column)
+
         occurrences = dict()
         column_data = data[column]
         stats = dict()
 
         stats["type-occurrences"] = count_type_occurances(column_data)
 
+        col_obj.record_count = column_data.size
+        col_obj.missing_count = stats["type-occurrences"]["empty"] * column_data.size
+
         # There is nothing useful to say about most common nan's in an empty column
         if not stats["type-occurrences"]["empty"] == 1.0:
-            stats["most_common"] = analyze_most_common(column_data)
+            stats["most-common"] = analyze_most_common(column_data)
+            col_obj.common_values = stats["most-common"]
 
         if stats["type-occurrences"][index(bool)] or \
                 stats["type-occurrences"][index(int)] or \
                 stats["type-occurrences"][index(float)]:
             stats["avg"] = column_data.mean()
+            col_obj.mean = stats["avg"]
             stats["min"] = column_data.min()
+            col_obj.min = stats["min"]
             stats["max"] = column_data.max()
+            col_obj.max = stats["max"]
             stats["sd"] = column_data.std()  # Standard deviation
 
         if stats["type-occurrences"][index(str)]:
             str_lengths = [len(el) for el in column_data]
             stats["avg-length"] = 0 if len(str_lengths) == 0 else (float(sum(str_lengths)) / len(str_lengths))
             stats["min-length"] = min(str_lengths)
+            col_obj.min = stats["min-length"]
             stats["max-length"] = max(str_lengths)
+            col_obj.max = stats["max-length"]
             stats["str-data"] = analyze_string_row(column_data)
 
         # Add a timestamp for when the last update was
@@ -167,7 +182,10 @@ def analyze(input_file):
 
         data_info[column] = stats
 
+        columns.append(col_obj)
+
     # pprint(data_info)
     export_json("report.json", data_info)
 
-    return data_info
+    return columns
+    # return data_info

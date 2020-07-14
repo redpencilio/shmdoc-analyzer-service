@@ -1,9 +1,9 @@
 import flask
 import escape_helpers
+import helpers
 from pprint import pprint
 from .analyzer import analyze_file
 from numpyencoder import NumpyEncoder
-
 
 
 def get_job_uri(uuid):
@@ -29,11 +29,12 @@ def get_job_uri(uuid):
 
     result = helpers.query(job_query)
 
-    location = extract_from_query(result,"file")
+    location = extract_from_query(result, "file")
     uri = escape_helpers.sparql_escape_uri(location)
     return uri
 
-def extract_from_query(result, variable_to_extract:str):
+
+def extract_from_query(result, variable_to_extract: str):
     return result["results"]["bindings"][0][variable_to_extract]["value"]
 
 
@@ -67,10 +68,11 @@ def get_physical_file(uri):
     result = helpers.query(file_query)
     pprint(flask.jsonify(result))
 
-    logical_file = extract_from_query(result,"logical_file")
-    extension = extract_from_query(result,"extension")
+    logical_file = extract_from_query(result, "logical_file")
+    extension = extract_from_query(result, "extension")
 
-    return logical_file,extension
+    return logical_file, extension
+
 
 def get_job_file(uuid):
     """
@@ -81,6 +83,12 @@ def get_job_file(uuid):
     logical_file, extension = get_physical_file(uri)
     logical_file = logical_file.replace("share://", "/share/")
     return logical_file, uri, extension
+
+
+def add_column(column):
+    query = column.query()
+    print(query)
+    helpers.query(query)
 
 
 # zelfde formaat voor andere acties (naast 'run')
@@ -94,11 +102,13 @@ def run_job(uuid):
     file_location, uri, extension = get_job_file(uuid)
     # Read file
     # Processing
-    result = analyze_file(file_location,extension)
+    result = analyze_file(file_location, extension)
     # Write result to database columns
-    pprint(result)
+    for column in result:
+        add_column(column)
+    # pprint(result)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
-    return flask.jsonify(result)
+    return flask.jsonify({"Message" : "You did it! The columns were succesfully added :-) Enjoy your day!"})
     # Write results
