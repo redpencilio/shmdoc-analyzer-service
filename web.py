@@ -34,7 +34,6 @@ def get_job_uri(uuid):
     return uri
 
 def extract_from_query(result, variable_to_extract:str):
-    pprint(result)
     return result["results"]["bindings"][0][variable_to_extract]["value"]
 
 
@@ -95,7 +94,6 @@ def run_job(uuid):
     file_location, uri, extension = get_job_file(uuid)
     # Read file
     # Processing
-    return extension
     result = analyze_file(file_location,extension)
     # Write result to database columns
     pprint(result)
