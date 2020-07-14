@@ -1,6 +1,7 @@
 import flask
 import escape_helpers
 from pprint import pprint
+from analyzer import analyze_file
 
 # TODO: put example queries in seperate files
 
