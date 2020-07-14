@@ -1,7 +1,8 @@
 #
 # Contains the main functionality for calling all the modules for the analyzing process
 #
-# import csv_analyzer
+import pandas
+#import csv_analyzer
 
 
 def analyze_file(file_location):
