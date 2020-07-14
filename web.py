@@ -1,6 +1,6 @@
 import flask
 import escape_helpers
-import pprint
+from pprint import pprint
 
 # TODO: put example queries in seperate files
 
@@ -59,6 +59,7 @@ def get_physical_file(uri):
         """.format(uri=uri)
 
     result = helpers.query(file_query)
+    pprint(flask.jsonify(result))
 
     logical_file = result["results"]["bindings"][0]["logical_file"]["value"]
 
