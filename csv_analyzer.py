@@ -8,10 +8,12 @@ from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
 
+def get_types():
+    return {bool: "bool", int: "int", float: "float", str: "str"}
 
 # Todo: occurances should not be global
 def index(element):
-    global types
+    types = get_types()
     return types[element] if isinstance(element, type) else element
 
 
@@ -19,10 +21,15 @@ def is_datetime(string):
     # Check whether there's any date / datetime somewhere in the string
     # stricts requires there to be a year, month and day (without strict, even strings like "error" are a date somehow)
     matches = datefinder.find_dates(string)
-    for match in matches:
-        # I didn't find a way to check len(matches), so this iteration solves it
+    if matches:
         return True
-    return False
+    else:
+        return False
+    # TODO: find out why the for loop doesn't work on the docker and whether the if matches works
+    # for match in matches:
+    #     # I didn't find a way to check len(matches), so this iteration solves it
+    #     return True
+    # return False
 
 
 # Given a string, what does the string probably contain?
@@ -83,7 +90,7 @@ def make_dict_relative(dictionary, size):
         if isinstance(dictionary[idx], dict):
             dictionary[idx] = make_dict_relative(dictionary[idx], size)
         else:
-            dictionary[idx] = dictionary[idx] / column_data.size
+            dictionary[idx] = dictionary[idx] / size
     return dictionary
 
 
@@ -91,7 +98,7 @@ def count_type_occurances(column_data):
     occurrences = dict()
     occurrences["empty"] = 0
 
-    global types
+    types = get_types()
     for type in types:
         occurrences[index(type)] = 0
 
@@ -128,7 +135,6 @@ def analyze(input_file):
     data = pd.read_csv(input_file, sep=predict_seperator(input_file))
     data_info = dict()  # Contains the info about each column
 
-    types = {bool: "bool", int: "int", float: "float", str: "str"}
 
     # finding the type of each column
     for column in data:

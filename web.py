@@ -2,6 +2,7 @@ import flask
 import escape_helpers
 from pprint import pprint
 from .analyzer import analyze_file
+from numpyencoder import NumpyEncoder
 
 
 # TODO: put example queries in seperate files
@@ -96,6 +97,8 @@ def run_job(uuid):
     # Write result to database columns
     pprint(result)
 
+    # Resolve conflicts with jsonify of numpy i64
+    app.json_encoder = NumpyEncoder
     return flask.jsonify(result)
     # Write results
 
