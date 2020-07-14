@@ -1,6 +1,9 @@
 import flask
 import escape_helpers
 
+# TODO: put example queries in seperate files
+# Add run path to diespatcher.ex (same system as files/downloads)
+
 def get_job_uri(uuid):
     """
     This function will query the database for SchemaAnalysisJob objects that
@@ -80,11 +83,20 @@ def get_file(uri):
     # Returns the file located at the given uri
     return str(uri)
 
-
-@app.route("/analysis/<uuid>/run")
+# zelfde formaat voor andere acties (naast 'run')
+@app.route("/schema-analysis-jobs/<uuid>/run")
 def run_job(uuid):
-    job = get_job(uuid)
-    return get_file(job[0])
+    # Query job uit database
+    # Query file uit database
+    # File uitlezen
+    # Processing
+    # Resultaten wegschrijven
+    pass
+
+# @app.route("/analysis/<uuid>/run")
+# def run_job(uuid):
+#     job = get_job(uuid)
+#     return get_file(job[0])
 
 
 @app.route("/exampleMethod")
