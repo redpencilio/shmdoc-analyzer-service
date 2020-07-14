@@ -1,12 +1,12 @@
 import flask
 import escape_helpers
+import pprint
 
 # TODO: put example queries in seperate files
-# Add run path to diespatcher.ex (same system as files/downloads)
 
 def get_job_uri(uuid):
     """
-    This function will query the database for SchemaAnalysisJob objects that
+    Queries the database for SchemaAnalysisJob objects that
     have the uuid as specified by "uuid".
     """
     job_query = """
@@ -29,12 +29,11 @@ def get_job_uri(uuid):
 
     location = result["results"]["bindings"][0]["file"]["value"]
     uri = escape_helpers.sparql_escape_uri(location)
-
     return uri
 
 def get_physical_file(uri):
     """
-    This function fetches the physical file on disk that belongs to a certain
+    Fetches the physical file on disk that belongs to a certain
     virtual file object (virtual files can link to files that are not in the
     database, but every file in the database has a virtual file object that acts
     as an identifier).
@@ -57,7 +56,7 @@ def get_physical_file(uri):
             OPTIONAL {{ {uri} dbpedia:fileExtension ?extension }}
         }}
         LIMIT 20
-        """.format(uri=uri) # in value pythonstring, url moeten met <> gesp worden
+        """.format(uri=uri)
 
     result = helpers.query(file_query)
 
@@ -69,66 +68,29 @@ def get_physical_file(uri):
 def get_job_file(uuid):
     """
     Returns the properties of the created file (created/file URI)
+    and the job uri.
     """
     uri = get_job_uri(uuid)
     logical_file = get_physical_file(uri)
     logical_file = logical_file.replace("share://", "/share/")
-    file = open(logical_file)
-    file_text = file.read()
-    return file_text
-    return flask.jsonify(result)
+    return logical_file, uri
 
-
-def get_file(uri):
-    # Returns the file located at the given uri
-    return str(uri)
 
 # zelfde formaat voor andere acties (naast 'run')
 @app.route("/schema-analysis-jobs/<uuid>/run")
 def run_job(uuid):
-    # Query job uit database
-    # Query file uit database
-    # File uitlezen
+    """
+    Queries job from database, gets file from job, reads file and processes
+    """
+    # Query job from database
+    # Query file from database
+    file_location, uri = get_job_file(uuid)
+    # Read file
+    file_text = ""
     # Processing
-    # Resultaten wegschrijven
-    pass
-
-# @app.route("/analysis/<uuid>/run")
-# def run_job(uuid):
-#     job = get_job(uuid)
-#     return get_file(job[0])
+    result = analyze_file(file_location)
+    # Write result to database columns
 
 
-@app.route("/exampleMethod")
-def exampleMethod():
-    return "test"
-
-
-@app.route("/exampleQuery")
-def exampleQuery():
-    example_query = """PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
-        PREFIX dbpedia: <http://dbpedia.org/ontology/>
-        PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
-
-        SELECT DISTINCT (?virtualFile AS ?uri) (?physicalFile AS ?physicalUri) (?uuid as ?id) ?name ?extension
-        WHERE {
-            ?virtualFile a nfo:FileDataObject ;
-                mu:uuid ?uuid .
-            ?physicalFile a nfo:FileDataObject ;
-                nie:dataSource ?virtualFile .
-            ?virtualFile nfo:fileName ?name .
-            ?virtualFile dbpedia:fileExtension ?extension .
-        }"""
-
-    return flask.jsonify(helpers.query(example_query))
-
-
-@app.route("/test2")
-def test2():
-    f = open("/share/5f0c25efd7814c000c000001.xml")
-    s = ""
-    for line in f:
-        s += line + "\n"
-    f.close()
-    return s
+    #return flask.jsonify(result)
+    # Write results
