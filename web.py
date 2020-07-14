@@ -3,6 +3,7 @@ import escape_helpers
 from pprint import pprint
 from analyzer import analyze_file
 
+
 # TODO: put example queries in seperate files
 
 def get_job_uri(uuid):
@@ -31,6 +32,7 @@ def get_job_uri(uuid):
     location = result["results"]["bindings"][0]["file"]["value"]
     uri = escape_helpers.sparql_escape_uri(location)
     return uri
+
 
 def get_physical_file(uri):
     """
@@ -66,6 +68,7 @@ def get_physical_file(uri):
 
     return logical_file
 
+
 @app.route("/get_job_file/<uuid>")
 def get_job_file(uuid):
     """
@@ -88,11 +91,11 @@ def run_job(uuid):
     # Query file from database
     file_location, uri = get_job_file(uuid)
     # Read file
-    file_text = ""
     # Processing
     result = analyze_file(file_location)
     # Write result to database columns
+    pprint(result)
 
-
-    #return flask.jsonify(result)
+    return flask.jsonify(result)
     # Write results
+

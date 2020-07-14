@@ -162,7 +162,7 @@ def analyze(input_file):
 
         data_info[column] = stats
 
-    pprint(data_info)
+    # pprint(data_info)
     export_json("report.json", data_info)
 
     return data_info
