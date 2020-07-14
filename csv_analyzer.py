@@ -21,15 +21,14 @@ def is_datetime(string):
     # Check whether there's any date / datetime somewhere in the string
     # stricts requires there to be a year, month and day (without strict, even strings like "error" are a date somehow)
     matches = datefinder.find_dates(string)
-    if matches:
-        return True
-    else:
-        return False
     # TODO: find out why the for loop doesn't work on the docker and whether the if matches works
-    # for match in matches:
-    #     # I didn't find a way to check len(matches), so this iteration solves it
-    #     return True
-    # return False
+    try:
+        for match in matches:
+            # I didn't find a way to check len(matches), so this iteration solves it
+            return True
+    except TypeError:
+        pass # No idea why a TypeError is raised sometimes, but this solves the problem temporarily :-)
+    return False
 
 
 # Given a string, what does the string probably contain?
