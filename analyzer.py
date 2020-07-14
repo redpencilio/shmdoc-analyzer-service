@@ -3,7 +3,7 @@
 #
 from .csv_analyzer import analyze as analyze_csv
 
-def analyze_file(file_location):
+def analyze_file(file_location,extension):
     result = analyze_csv(file_location)
     return result
 

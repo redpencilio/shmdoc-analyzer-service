@@ -5,7 +5,6 @@ from .analyzer import analyze_file
 from numpyencoder import NumpyEncoder
 
 
-# TODO: put example queries in seperate files
 
 def get_job_uri(uuid):
     """
@@ -30,9 +29,13 @@ def get_job_uri(uuid):
 
     result = helpers.query(job_query)
 
-    location = result["results"]["bindings"][0]["file"]["value"]
+    location = extract_from_query(result,"file")
     uri = escape_helpers.sparql_escape_uri(location)
     return uri
+
+def extract_from_query(result, variable_to_extract:str):
+    pprint(result)
+    return result["results"]["bindings"][0][variable_to_extract]["value"]
 
 
 def get_physical_file(uri):
@@ -50,14 +53,14 @@ def get_physical_file(uri):
         PREFIX dct: <http://purl.org/dc/terms/>
         PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
 
-        SELECT (?uuid as ?id) ?logical_file ?format ?extension
-        WHERE
-        {{
+        SELECT (?uuid as ?id) ?logical_file ?extension
+        WHERE{{
+            GRAPH <http://mu.semte.ch/application>{{
             {uri} a nfo:FileDataObject ;
+                  dbpedia:fileExtension ?extension;
                   mu:uuid ?uuid .
             ?logical_file nie:dataSource {uri} .
-            OPTIONAL {{ {uri} dct:format ?format }}
-            OPTIONAL {{ {uri} dbpedia:fileExtension ?extension }}
+            }}
         }}
         LIMIT 20
         """.format(uri=uri)
@@ -65,21 +68,20 @@ def get_physical_file(uri):
     result = helpers.query(file_query)
     pprint(flask.jsonify(result))
 
-    logical_file = result["results"]["bindings"][0]["logical_file"]["value"]
+    logical_file = extract_from_query(result,"logical_file")
+    extension = extract_from_query(result,"extension")
 
-    return logical_file
+    return logical_file,extension
 
-
-@app.route("/get_job_file/<uuid>")
 def get_job_file(uuid):
     """
     Returns the properties of the created file (created/file URI)
     and the job uri.
     """
     uri = get_job_uri(uuid)
-    logical_file = get_physical_file(uri)
+    logical_file, extension = get_physical_file(uri)
     logical_file = logical_file.replace("share://", "/share/")
-    return logical_file, uri
+    return logical_file, uri, extension
 
 
 # zelfde formaat voor andere acties (naast 'run')
@@ -90,10 +92,11 @@ def run_job(uuid):
     """
     # Query job from database
     # Query file from database
-    file_location, uri = get_job_file(uuid)
+    file_location, uri, extension = get_job_file(uuid)
     # Read file
     # Processing
-    result = analyze_file(file_location)
+    return extension
+    result = analyze_file(file_location,extension)
     # Write result to database columns
     pprint(result)
 
@@ -101,4 +104,3 @@ def run_job(uuid):
     app.json_encoder = NumpyEncoder
     return flask.jsonify(result)
     # Write results
-
