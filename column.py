@@ -51,12 +51,6 @@ def str_query(uri, relation, value):
                                                           value=escaped_value)
     return ""
 
-    # TODO: fix code below
-    if value is not None and not isinstance(value, (bool, list)):  # TODO: fix the bool and list
-        return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
-                                                          value=escape_helpers.sparql_escape(value))
-    return ""
-
 
 class Column:
     def __init__(self, name):
@@ -78,7 +72,7 @@ class Column:
         self.median = None
         self.common_values = None
 
-    def query(self):
+    def query(self, job_uri):
         base_uri = "http://example.com/columns/{id}".format(id=self.uuid)
         uri = escape_helpers.sparql_escape_uri(base_uri)
 
@@ -90,8 +84,9 @@ class Column:
             print(attr, value, type(value))
             relation = get_relation(attr)
             query_str += str_query(uri, relation, value)
-        query_str += "\t}"
-        query_str += "}"
+        query_str += "{job} ext:column {column} . ".format(job=escape_helpers.sparql_escape_uri(job_uri), column=uri)
+        query_str += "\t}\n"
+        query_str += "}\n"
 
         prefixes = "PREFIX ext: {uri}\n".format(
             uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/ext/"))

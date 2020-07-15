@@ -29,9 +29,10 @@ def get_job_uri(uuid):
 
     result = helpers.query(job_query)
 
-    location = extract_from_query(result, "file")
-    uri = escape_helpers.sparql_escape_uri(location)
-    return uri
+    file_uri = extract_from_query(result, "file")
+    job_uri = extract_from_query(result, "job")
+
+    return file_uri, job_uri
 
 
 def extract_from_query(result, variable_to_extract: str):
@@ -63,7 +64,7 @@ def get_physical_file(uri):
             }}
         }}
         LIMIT 20
-        """.format(uri=uri)
+        """.format(uri=escape_helpers.sparql_escape_uri(uri))
 
     result = helpers.query(file_query)
     pprint(flask.jsonify(result))
@@ -79,14 +80,14 @@ def get_job_file(uuid):
     Returns the properties of the created file (created/file URI)
     and the job uri.
     """
-    uri = get_job_uri(uuid)
-    logical_file, extension = get_physical_file(uri)
+    file_uri, job_uri = get_job_uri(uuid)
+    logical_file, extension = get_physical_file(file_uri)
     logical_file = logical_file.replace("share://", "/share/")
-    return logical_file, uri, extension
+    return logical_file, file_uri, extension, job_uri
 
 
-def add_column(column):
-    query = column.query()
+def add_column(column, uri):
+    query = column.query(uri)
     print(query)
     helpers.query(query)
 
@@ -99,13 +100,13 @@ def run_job(uuid):
     """
     # Query job from database
     # Query file from database
-    file_location, uri, extension = get_job_file(uuid)
+    file_location, uri, extension, job_uri = get_job_file(uuid)
     # Read file
     # Processing
     result = analyze_file(file_location, extension)
     # Write result to database columns
     for column in result:
-        add_column(column)
+        add_column(column, job_uri)
     # pprint(result)
 
     # Resolve conflicts with jsonify of numpy i64
