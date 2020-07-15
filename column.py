@@ -27,8 +27,8 @@ def get_relation(attr_name):
 
 
 def str_query(uri, relation, value):
-    return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=escape_helpers.sparql_escape_string(value))
-    # TODO? Check whether value is defined?
+    if value is not None:
+        return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=escape_helpers.sparql_escape(value))
 
 
 class Column:
@@ -52,9 +52,11 @@ class Column:
         self.common_values = None
 
     def query(self):
-        uri = "<http://example.com/columns/{id}>".format(id=self.uuid)
+        base_uri = "http://example.com/columns/{id}".format(id=self.uuid)
+        uri = escape_helpers.sparql_escape_uri(base_uri)
+
         query_str = "INSERT DATA { \n"
-        query_str += "\tGRAPH <http://mu.semte.ch/application> { \n"
+        query_str += "\tGRAPH {app_uri} { \n".format(app_uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/application"))
         query_str += "\t\t{uri} a ext:Column . \n".format(uri=uri)
         for attr, value in self.__dict__.items():
             print(attr, value)
@@ -63,8 +65,8 @@ class Column:
         query_str += "\t}"
         query_str += "}"
 
-        prefixes = "PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>\n"
-        prefixes += "PREFIX mu: <http://mu.semte.ch/vocabularies/core/>\n"
+        prefixes = "PREFIX ext: {uri}\n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/ext/"))
+        prefixes += "PREFIX mu: \n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/core/"))
         query_str = prefixes + query_str
 
         return query_str
