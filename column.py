@@ -27,9 +27,12 @@ def get_relation(attr_name):
 
 
 def str_query(uri, relation, value):
-    if value is not None:
+    return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
+                                                      value=escape_helpers.sparql_escape_string(value))
+    # TODO: fix code below
+    if value is not None and not isinstance(value, (bool, list)): # TODO: fix the bool and list
         return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=escape_helpers.sparql_escape(value))
-
+    return ""
 
 class Column:
     def __init__(self, name):
@@ -56,17 +59,17 @@ class Column:
         uri = escape_helpers.sparql_escape_uri(base_uri)
 
         query_str = "INSERT DATA { \n"
-        query_str += "\tGRAPH {app_uri} { \n".format(app_uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/application"))
+        query_str += "\tGRAPH {app_uri} {{ \n".format(app_uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/application"))
         query_str += "\t\t{uri} a ext:Column . \n".format(uri=uri)
         for attr, value in self.__dict__.items():
-            print(attr, value)
+            print(attr, value, type(value))
             relation = get_relation(attr)
             query_str += str_query(uri, relation, value)
         query_str += "\t}"
         query_str += "}"
 
         prefixes = "PREFIX ext: {uri}\n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/ext/"))
-        prefixes += "PREFIX mu: \n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/core/"))
+        prefixes += "PREFIX mu: {uri}\n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/core/"))
         query_str = prefixes + query_str
 
         return query_str
