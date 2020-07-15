@@ -1,6 +1,7 @@
 import random
 import string
 import escape_helpers
+import helpers
 
 relation_map = {"uuid": "mu:uuid",
                 "name": "ext:name",
@@ -36,7 +37,7 @@ def str_query(uri, relation, value):
 
 class Column:
     def __init__(self, name):
-        self.uuid = ''.join(random.choices(string.ascii_uppercase + string.digits, k=16))
+        self.uuid = helpers.generate_uuid()
         self.name = name
         self.path = None
         self.description = None
