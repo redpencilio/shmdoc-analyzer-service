@@ -13,7 +13,14 @@ def xml_to_dataframe(input_file):
 
     # Flatten the nested dictionary
     normalized = pandas.json_normalize(data)
-    return normalized
+
+    for row in normalized:
+        # TODO: zoek de kolom met de meeste rijen, want daarover willen we waarschijnlijk praten met shmdoc
+        #  cause what it currently does is just take the data from the first row
+        subdata = normalized[row]
+        el = subdata[0]
+        norm = pandas.json_normalize(el)
+        return norm
     # normalized.to_csv("output.csv")
 
     # TODO: Should find all the lists with more than n rows (recursively)

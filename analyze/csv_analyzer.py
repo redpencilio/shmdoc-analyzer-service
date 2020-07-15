@@ -7,7 +7,7 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
-from .column import Column
+from ..column import Column
 from statistics import median
 
 
