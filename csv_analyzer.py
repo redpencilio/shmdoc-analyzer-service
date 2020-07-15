@@ -8,9 +8,12 @@ from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
 from .column import Column
+from statistics import median
+
 
 def get_types():
     return {bool: "bool", int: "int", float: "float", str: "str"}
+
 
 # Todo: occurances should not be global
 def index(element):
@@ -28,7 +31,7 @@ def is_datetime(string):
             # I didn't find a way to check len(matches), so this iteration solves it
             return True
     except TypeError:
-        pass # No idea why a TypeError is raised sometimes, but this solves the problem temporarily :-)
+        pass  # No idea why a TypeError is raised sometimes, but this solves the problem temporarily :-)
     return False
 
 
@@ -138,16 +141,14 @@ def export_json(filename, data):
     #     json.dump(data, fp)
 
 
-#input_file = "dwca-est_grey_seals_00-16-v1.1/event.txt"
+# input_file = "dwca-est_grey_seals_00-16-v1.1/event.txt"
 
 def analyze(input_file):
-
     columns = []
 
     # reading csv file
     data = pd.read_csv(input_file, sep=predict_seperator(input_file))
     data_info = dict()  # Contains the info about each column
-
 
     # finding the type of each column
     for column in data:
@@ -172,6 +173,7 @@ def analyze(input_file):
                 stats["type-occurrences"][index(float)]:
             stats["avg"] = column_data.mean()
             col_obj.mean = stats["avg"]
+            col_obj.median = column_data.median()
             stats["min"] = column_data.min()
             col_obj.min = stats["min"]
             stats["max"] = column_data.max()
@@ -181,6 +183,8 @@ def analyze(input_file):
         if stats["type-occurrences"][index(str)]:
             str_lengths = [len(el) for el in column_data]
             stats["avg-length"] = 0 if len(str_lengths) == 0 else (float(sum(str_lengths)) / len(str_lengths))
+            col_obj.mean = stats["avg-length"]
+            col_obj.median = median(str_lengths)  # statistics.median
             stats["min-length"] = min(str_lengths)
             col_obj.min = stats["min-length"]
             stats["max-length"] = max(str_lengths)
