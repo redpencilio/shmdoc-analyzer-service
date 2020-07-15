@@ -2,6 +2,7 @@ import random
 import string
 import escape_helpers
 import helpers
+import numpy as np
 
 relation_map = {"uuid": "mu:uuid",
                 "name": "ext:name",
@@ -28,12 +29,21 @@ def get_relation(attr_name):
 
 
 def str_query(uri, relation, value):
-    return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
-                                                      value=escape_helpers.sparql_escape_string(value))
-    # TODO: fix code below
-    if value is not None and not isinstance(value, (bool, list)): # TODO: fix the bool and list
-        return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=escape_helpers.sparql_escape(value))
+    if value is not None:
+        if type(value).__module__ == np.__name__:
+            # Convert the numpy value (e.g. int64) to a python value
+            value = value.item()
+        escaped_value = escape_helpers.sparql_escape(value)
+        return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
+                                                          value=escaped_value)
     return ""
+
+    # TODO: fix code below
+    if value is not None and not isinstance(value, (bool, list)):  # TODO: fix the bool and list
+        return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
+                                                          value=escape_helpers.sparql_escape(value))
+    return ""
+
 
 class Column:
     def __init__(self, name):
@@ -60,7 +70,8 @@ class Column:
         uri = escape_helpers.sparql_escape_uri(base_uri)
 
         query_str = "INSERT DATA { \n"
-        query_str += "\tGRAPH {app_uri} {{ \n".format(app_uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/application"))
+        query_str += "\tGRAPH {app_uri} {{ \n".format(
+            app_uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/application"))
         query_str += "\t\t{uri} a ext:Column . \n".format(uri=uri)
         for attr, value in self.__dict__.items():
             print(attr, value, type(value))
@@ -69,8 +80,10 @@ class Column:
         query_str += "\t}"
         query_str += "}"
 
-        prefixes = "PREFIX ext: {uri}\n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/ext/"))
-        prefixes += "PREFIX mu: {uri}\n".format(uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/core/"))
+        prefixes = "PREFIX ext: {uri}\n".format(
+            uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/ext/"))
+        prefixes += "PREFIX mu: {uri}\n".format(
+            uri=escape_helpers.sparql_escape_uri("http://mu.semte.ch/vocabularies/core/"))
         query_str = prefixes + query_str
 
         return query_str
