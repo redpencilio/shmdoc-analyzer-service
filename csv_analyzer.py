@@ -94,7 +94,7 @@ def make_dict_relative(dictionary, size):
     return dictionary
 
 
-def count_type_occurances(column_data):
+def count_type_occurances(column_data, col_obj):
     occurrences = dict()
     occurrences["empty"] = 0
 
@@ -112,6 +112,16 @@ def count_type_occurances(column_data):
         for type in types:
             if isinstance(element, type):
                 occurrences[index(type)] += 1
+
+    col_obj.missing_count = occurrences["empty"]
+
+    expected_type = "?"
+    expected_type_count = 0
+    for type in occurrences:
+        if occurrences[type] > expected_type_count:
+            expected_type_count = occurrences[type]
+            expected_type = type
+    col_obj.data_type = expected_type
 
     # Make the absolute values relative
     occurrences = make_dict_relative(occurrences, column_data.size)
@@ -147,10 +157,10 @@ def analyze(input_file):
         column_data = data[column]
         stats = dict()
 
-        stats["type-occurrences"] = count_type_occurances(column_data)
+        stats["type-occurrences"] = count_type_occurances(column_data, col_obj)
 
         col_obj.record_count = column_data.size
-        col_obj.missing_count = stats["type-occurrences"]["empty"] * column_data.size
+        col_obj.missing_count = int(stats["type-occurrences"]["empty"] * column_data.size)
 
         # There is nothing useful to say about most common nan's in an empty column
         if not stats["type-occurrences"]["empty"] == 1.0:
