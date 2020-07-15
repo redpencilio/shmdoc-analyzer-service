@@ -3,3 +3,4 @@ numpy==1.19.0
 numpyencoder==0.2.0
 pandas==1.0.5
 Werkzeug==1.0.1
+xmltodict==0.12.0

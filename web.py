@@ -81,6 +81,7 @@ def get_job_file(uuid):
     and the job uri.
     """
     file_uri, job_uri = get_job_uri(uuid)
+    print("Job {} handles file {}".format(job_uri, file_uri))
     logical_file, extension = get_physical_file(file_uri)
     logical_file = logical_file.replace("share://", "/share/")
     return logical_file, file_uri, extension, job_uri
@@ -98,6 +99,7 @@ def run_job(uuid):
     """
     Queries job from database, gets file from job, reads file and processes
     """
+    print("Starting job with uuid", uuid)
     # Query job from database
     # Query file from database
     file_location, uri, extension, job_uri = get_job_file(uuid)

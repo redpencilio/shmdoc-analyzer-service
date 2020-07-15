@@ -59,14 +59,17 @@ def analyze_string_row(column_data):
 def analyze_most_common(column_data):
     common_elements = []
 
-    # Get inforation about the most occuring elements
-    c = Counter(column_data)
-    most_common_element = c.most_common(5)  # get the nr. 5 most occuring elements
+    try:
+        # Get inforation about the most occuring elements
+        c = Counter(column_data)
+        most_common_element = c.most_common(5)  # get the nr. 5 most occuring elements
 
-    for el in most_common_element:
-        occurance = {"element": el[0], "occurances": el[1] / column_data.size}
-        common_elements.append(occurance)
-
+        for el in most_common_element:
+            occurance = {"element": el[0], "occurances": el[1] / column_data.size}
+            common_elements.append(occurance)
+    except TypeError:
+        # Typerror possible if data contains e.g. a list
+        return []
     return common_elements
 
 
@@ -143,11 +146,10 @@ def export_json(filename, data):
 
 # input_file = "dwca-est_grey_seals_00-16-v1.1/event.txt"
 
-def analyze(input_file):
+# data is a pandas dataframe
+def analyze(data):
     columns = []
 
-    # reading csv file
-    data = pd.read_csv(input_file, sep=predict_seperator(input_file))
     data_info = dict()  # Contains the info about each column
 
     # finding the type of each column
