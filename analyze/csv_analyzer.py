@@ -7,8 +7,8 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
-# from ..column import Column # Use this one when using docker
-from column import Column # Use this one when using debug.py # TODO add if statement
+from ..column import Column # Use this one when using docker
+# from column import Column # Use this one when using debug.py # TODO add if statement
 from statistics import median
 
 
