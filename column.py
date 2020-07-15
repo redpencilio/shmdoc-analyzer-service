@@ -3,6 +3,7 @@ import string
 import escape_helpers
 import helpers
 import numpy as np
+import json
 
 relation_map = {"uuid": "mu:uuid",
                 "name": "ext:name",
@@ -30,10 +31,22 @@ def get_relation(attr_name):
 
 def str_query(uri, relation, value):
     if value is not None:
+        if isinstance(value, list):
+            # Store lists as json string dumps
+            value = json.dumps(value)
+
         if type(value).__module__ == np.__name__:
             # Convert the numpy value (e.g. int64) to a python value
             value = value.item()
         escaped_value = escape_helpers.sparql_escape(value)
+
+        if isinstance(value, bool):
+            # Fix for weird problem with booleans
+            escaped_value = escaped_value.replace("False", "false")
+            escaped_value = escaped_value.replace("True", "true")
+            escaped_value = escaped_value.replace("^^xsd:boolean",
+                                                  "^^<http://mu.semte.ch/vocabularies/typed-literals/boolean>")
+
         return "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation,
                                                           value=escaped_value)
     return ""
