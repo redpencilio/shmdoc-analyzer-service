@@ -23,7 +23,6 @@ relation_map = {"uuid": "mu:uuid",
                 "median": "ext:median",
                 "common_values": "ext:commonValues"}
 
-
 def get_relation(attr_name):
     global relation_map
     return relation_map[str(attr_name)]
@@ -71,6 +70,9 @@ class Column:
         self.mean = None
         self.median = None
         self.common_values = None
+
+    def __repr__(self):
+        return "Column \"{}\"".format(self.name)
 
     def query(self, job_uri):
         base_uri = "http://example.com/columns/{id}".format(id=self.uuid)

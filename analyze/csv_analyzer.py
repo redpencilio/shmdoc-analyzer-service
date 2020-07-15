@@ -171,9 +171,9 @@ def analyze(data):
             stats["most-common"] = analyze_most_common(column_data)
             col_obj.common_values = stats["most-common"]
 
-        if stats["type-occurrences"][index(bool)] or \
-                stats["type-occurrences"][index(int)] or \
-                stats["type-occurrences"][index(float)]:
+        if stats["type-occurrences"][index(bool)] == 1.0 or \
+                stats["type-occurrences"][index(int)] == 1.0 or \
+                stats["type-occurrences"][index(float)] == 1.0:
             stats["avg"] = column_data.mean()
             col_obj.mean = stats["avg"]
             col_obj.median = column_data.median()
@@ -183,7 +183,7 @@ def analyze(data):
             col_obj.max = stats["max"]
             stats["sd"] = column_data.std()  # Standard deviation
 
-        if stats["type-occurrences"][index(str)]:
+        if stats["type-occurrences"][index(str)] == 1.0:
             str_lengths = [len(el) for el in column_data]
             stats["avg-length"] = 0 if len(str_lengths) == 0 else (float(sum(str_lengths)) / len(str_lengths))
             col_obj.mean = stats["avg-length"]
