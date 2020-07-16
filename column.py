@@ -37,7 +37,13 @@ def str_query(uri, relation, value):
         if type(value).__module__ == np.__name__:
             # Convert the numpy value (e.g. int64) to a python value
             value = value.item()
-        escaped_value = escape_helpers.sparql_escape(value)
+
+        uri_relations = (get_relation("data_type"))
+        escaped_value = ""
+        if relation in uri_relations:
+            escaped_value = escape_helpers.sparql_escape_uri(value)
+        else:
+            escaped_value = escape_helpers.sparql_escape(value)
 
         if isinstance(value, bool):
             # Fix for weird problem with booleans

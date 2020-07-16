@@ -7,19 +7,21 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
-from ..column import Column # Use this one when using docker
+from ..column import Column  # Use this one when using docker
 # from column import Column # Use this one when using debug.py # TODO add if statement
 from statistics import median
 
+typeUri = "http://www.w3.org/2001/XMLSchema#{type}"
+typeMap = {bool: typeUri.format(type="boolean"),
+           int: typeUri.format(type="integer"),
+           float: typeUri.format(type="float"),
+           str: typeUri.format(type="string"),
+           "datetime": typeUri.format(type="dateTime")}
 
-def get_types():
-    return {bool: "bool", int: "int", float: "float", str: "str"}
 
-
-# Todo: occurances should not be global
-def index(element):
-    types = get_types()
-    return types[element] if isinstance(element, type) else element
+def type_url(type):
+    global typeMap
+    return typeMap[type]
 
 
 def is_datetime(string):
@@ -43,8 +45,12 @@ def analyze_string_type(element, occurrences):
     for type in supported_strings:
         if supported_strings[type](element):
             if type not in occurrences:
-                occurrences[type] = 0
-            occurrences[type] += 1
+                occurrences[type_url(type)] = 0
+            occurrences[type_url(type)] += 1
+        else:
+            if type_url(str) not in occurrences:
+                occurrences[type_url(str)] = 0
+            occurrences[type_url(str)] += 1
 
     return occurrences
 
@@ -52,9 +58,12 @@ def analyze_string_type(element, occurrences):
 def analyze_string_row(column_data):
     occurrences = dict()
     for element in column_data:
+        if not isinstance(element, str):
+            continue
         occurrences = analyze_string_type(element, occurrences)
-    make_dict_relative(occurrences, column_data.size)
-    return occurrences
+    probable_type = find_most_occuring(occurrences)
+    # make_dict_relative(occurrences, column_data.size)
+    return probable_type
 
 
 def analyze_most_common(column_data):
@@ -101,39 +110,58 @@ def make_dict_relative(dictionary, size):
     return dictionary
 
 
-def count_type_occurances(column_data, col_obj):
+def find_most_occuring(occurrences):
+    most_occuring = "I have no idea :-("
+    most_occuring_count = 0
+    for type in occurrences:
+        if occurrences[type] > most_occuring_count:
+            most_occuring_count = occurrences[type]
+            most_occuring = type
+    return most_occuring
+
+
+def predict_type(column_data, col_obj):
     occurrences = dict()
     occurrences["empty"] = 0
 
-    types = get_types()
-    for type in types:
-        occurrences[index(type)] = 0
+    global typeMap
+    # No occurrences at the beginning
+    for type_ in typeMap:
+        occurrences[type_url(type_)] = 0
 
+    # Find the absolute occurances of each type
     for element in column_data:
         # float check because math.isnan() only works on real numbers
         if isinstance(element, float) and math.isnan(element):
             # Empty cells get converted to NaN by pandas
             occurrences["empty"] += 1
-            occurrences[index("float")] -= 1  # Because it's actually not a float, but empty
+            occurrences[type_url(float)] -= 1  # Because it's actually not a float, but empty
 
-        for type in types:
-            if isinstance(element, type):
-                occurrences[index(type)] += 1
+        for type_ in typeMap:
+            if isinstance(type_, type):
+                if isinstance(element, type_):
+                    occurrences[type_url(type_)] += 1
 
     col_obj.missing_count = occurrences["empty"]
 
-    expected_type = "?"
-    expected_type_count = 0
-    for type in occurrences:
-        if occurrences[type] > expected_type_count:
-            expected_type_count = occurrences[type]
-            expected_type = type
-    col_obj.data_type = expected_type
+    # Get the most occurring type
+    expected_type = find_most_occuring(occurrences)
+
+    if expected_type == type_url(str):
+        # Analyze what type the string actualy is
+        expected_type = analyze_string_row(column_data)
+
+    if expected_type != "empty":
+        col_obj.data_type = expected_type
+    else:
+        # Don't process columns with only empty elements
+        col_obj.disable_processing = True
 
     # Make the absolute values relative
-    occurrences = make_dict_relative(occurrences, column_data.size)
+    # TODO: still relative required?
+    # occurrences = make_dict_relative(occurrences, column_data.size)
 
-    return occurrences
+    return col_obj
 
 
 def export_json(filename, data):
@@ -145,54 +173,49 @@ def export_json(filename, data):
     #     json.dump(data, fp)
 
 
-# input_file = "dwca-est_grey_seals_00-16-v1.1/event.txt"
-
-# data is a pandas dataframe
 def analyze(data):
+    """
+    The main analyze function
+    The parameter data is a pandas dataframe
+    Returns a list of columns: for each column of the data an object with the information attached
+    """
     columns = []
 
     data_info = dict()  # Contains the info about each column
 
     # finding the type of each column
     for column in data:
-        col_obj = Column(column)
+        col_obj = Column(column)  # TODO: Retrieve previously created col_obj and check if we should process
 
-        occurrences = dict()
         column_data = data[column]
         stats = dict()
 
-        stats["type-occurrences"] = count_type_occurances(column_data, col_obj)
+        col_obj = predict_type(column_data, col_obj)
+        if col_obj.disable_processing:
+            # Can be enabled if all empty
+            # There is nothing useful to say about most common nan's in an empty column
+            continue
 
         col_obj.record_count = column_data.size
-        col_obj.missing_count = int(stats["type-occurrences"]["empty"] * column_data.size)
+        col_obj.common_values = analyze_most_common(column_data)
 
-        # There is nothing useful to say about most common nan's in an empty column
-        if not stats["type-occurrences"]["empty"] == 1.0:
-            stats["most-common"] = analyze_most_common(column_data)
-            col_obj.common_values = stats["most-common"]
-
-        if stats["type-occurrences"][index(bool)] == 1.0 or \
-                stats["type-occurrences"][index(int)] == 1.0 or \
-                stats["type-occurrences"][index(float)] == 1.0:
-            stats["avg"] = column_data.mean()
-            col_obj.mean = stats["avg"]
+        numerical_types = [type_url(bool), type_url(int), type_url(float)]
+        if col_obj.data_type in numerical_types:
+            col_obj.mean = column_data.mean()
             col_obj.median = column_data.median()
-            stats["min"] = column_data.min()
-            col_obj.min = stats["min"]
-            stats["max"] = column_data.max()
-            col_obj.max = stats["max"]
+            col_obj.min = column_data.min()
+            col_obj.max = column_data.max()
             stats["sd"] = column_data.std()  # Standard deviation
 
-        if stats["type-occurrences"][index(str)] == 1.0:
+        str_types = [type_url(str), type_url("datetime")]
+        if col_obj.data_type in str_types:
             str_lengths = [len(el) for el in column_data]
-            stats["avg-length"] = 0 if len(str_lengths) == 0 else (float(sum(str_lengths)) / len(str_lengths))
-            col_obj.mean = stats["avg-length"]
+            col_obj.mean = 0 if len(str_lengths) == 0 else (
+                        float(sum(str_lengths)) / len(str_lengths))  # the avg length
             col_obj.median = median(str_lengths)  # statistics.median
-            stats["min-length"] = min(str_lengths)
-            col_obj.min = stats["min-length"]
-            stats["max-length"] = max(str_lengths)
-            col_obj.max = stats["max-length"]
-            stats["str-data"] = analyze_string_row(column_data)
+            col_obj.min = min(str_lengths)  # min length
+            col_obj.max = max(str_lengths)  # max length
+            # stats["str-data"] = analyze_string_row(column_data) # gets already analyzed in type prediction
 
         # Add a timestamp for when the last update was
         stats["timestamp"] = str(datetime.now())
