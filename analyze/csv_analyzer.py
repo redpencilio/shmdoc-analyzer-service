@@ -7,8 +7,14 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
-from .. import column as column_file # Use this one when using docker
-# from column import Column # Use this one when using debug.py # TODO add if statement
+
+import os
+path = os.getcwd()
+if path == "/home/arno/Documents/shmdoc/shmdoc-analyzer-service/analyze":
+    import column as column_file # Use this one when using debug.py
+else:
+    from .. import column as column_file # Use this one when using docker
+
 from statistics import median
 
 typeUri = "http://www.w3.org/2001/XMLSchema#{type}"
