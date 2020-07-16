@@ -20,7 +20,8 @@ def find_longest_list(data):
 
 def normalize_to_longest_list(unnormalized):
     """
-    Find the longest list with find_longest_list() and normalize/flatten 
+    Find the longest list in a nested dictionary (like the one obtained 
+    from reading in a json file) with find_longest_list() and normalize/flatten 
     to this level.
     """
     longest_list = find_longest_list(data)
@@ -39,4 +40,11 @@ def xml_to_dataframe(input_file):
     return normalized
 
 
-
+def json_to_dataframe(input_file):
+    # Convert the json file to a nested dictionary
+    with open(input_file) as fd:
+        doc = fd.read()
+    data = json.loads(doc)
+    # Flatten the nested dictionary
+    normalized = normalize_to_longest_list(data)
+    return normalized
