@@ -108,7 +108,7 @@ def predict_seperator(filename):
 
 def make_dict_relative(dictionary, size):
     for type in dictionary:
-        idx = index(type)
+        idx = type_url(type)
         if isinstance(dictionary[idx], dict):
             dictionary[idx] = make_dict_relative(dictionary[idx], size)
         else:
@@ -117,7 +117,8 @@ def make_dict_relative(dictionary, size):
 
 
 def find_most_occuring(occurrences):
-    most_occuring = "I have no idea :-("
+    global typeUri
+    most_occuring = typeUri.format(type="anyType")
     most_occuring_count = 0
     for type in occurrences:
         if occurrences[type] > most_occuring_count:
