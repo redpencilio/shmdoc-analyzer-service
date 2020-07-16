@@ -12,7 +12,7 @@ def find_longest_list(data):
     for child in data:
         if not isinstance(child, dict):
             continue
-        ll_child = find_longest_list(data[child])
+        ll_child = find_longest_list(child)
         if len(ll_child) > len(longest_list):
             longest_list = ll_child
     return longest_list
@@ -24,7 +24,7 @@ def normalize_to_longest_list(unnormalized):
     from reading in a json file) with find_longest_list() and normalize/flatten 
     to this level.
     """
-    longest_list = find_longest_list(data)
+    longest_list = find_longest_list(unnormalized)
     normalized = pandas.json_normalize(longest_list)
     return normalized
 

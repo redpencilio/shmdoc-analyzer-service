@@ -7,8 +7,8 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
-from ..column import Column # Use this one when using docker
-# from column import Column # Use this one when using debug.py # TODO add if statement
+from .. import column as column_ # Use this one when using docker
+#from column import Column # Use this one when using debug.py # TODO add if statement
 from statistics import median
 
 
@@ -155,7 +155,7 @@ def analyze(data):
 
     # finding the type of each column
     for column in data:
-        col_obj = Column(column)
+        col_obj = column_.Column(column)
 
         occurrences = dict()
         column_data = data[column]
