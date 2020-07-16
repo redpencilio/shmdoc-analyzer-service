@@ -4,7 +4,7 @@
 import pandas as pd
 from .csv_analyzer import analyze as analyze_data
 from .csv_analyzer import predict_seperator
-from .xml_analyzer import xml_to_dataframe
+from .hierarchical_analyzer import xml_to_dataframe, json_to_dataframe
 
 
 # returns a list of columns
@@ -16,8 +16,7 @@ def analyze_file(file_location, extension):
     elif extension == "xml":
         data = xml_to_dataframe(file_location)
     elif extension == "json":
-        pass  # TODO
-        return []
+        data = json_to_dataframe(file_location)
     else:
         print("File type not supported :-(")  # TODO: Should this raise an error or return empty list?
         return []
