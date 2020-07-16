@@ -78,7 +78,7 @@ class Column:
         self.common_values = None
 
     def __repr__(self):
-        return "Column \"{}\"".format(self.name)
+        return "<Column {} \"{}\">".format(self.record_count, self.name)
 
     def query(self, job_uri):
         base_uri = "http://example.com/columns/{id}".format(id=self.uuid)
