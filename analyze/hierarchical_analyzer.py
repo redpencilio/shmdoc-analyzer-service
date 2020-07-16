@@ -4,16 +4,51 @@ import pandas
 import json
 
 
+def get_child_headers(child):
+    children = set()
+    if not isinstance(child, dict):
+        return children
+    for header in child:
+        children.add(header)
+    return children
+
+
+# data should be list or dict
+def children_same_columns(data):
+    """
+    Check if all children in the dict have the same column headers
+    """
+    children = None
+    for subcolumn in data:
+        headers = ()
+        if isinstance(data, dict):
+            headers = get_child_headers(data[subcolumn])
+        else:
+            headers = get_child_headers(subcolumn)
+        if children is None:
+            children = headers
+        else:
+            if headers != children:
+                return False  # TODO: Maybe don't require to be exactly the same, but for 50%?
+    return True
+
+
 def find_longest_list(data):
     """
     In a nested dictionary, find the level with the most key/value-pairs
     """
+    if not isinstance(data, (dict, list)):
+        return []
     longest_list = data  # with length data
     for child in data:
-        if not isinstance(child, dict):
-            continue
-        ll_child = find_longest_list(child)
-        if len(ll_child) > len(longest_list):
+        # if not isinstance(data[child], (dict, list)):
+        #     continue
+        ll_child = []
+        if isinstance(data, dict):
+            ll_child = find_longest_list(data[child])
+        else:
+            ll_child = find_longest_list(child)
+        if len(ll_child) > len(longest_list) and children_same_columns(ll_child):
             longest_list = ll_child
     return longest_list
 
@@ -32,7 +67,7 @@ def normalize_to_longest_list(unnormalized):
 def xml_to_dataframe(input_file):
     # Convert the xml file to a nested dictionary
     with open(input_file) as fd:
-    # Dump in string and then reconvert to not have orderedDicts
+        # Dump in string and then reconvert to not have orderedDicts
         doc = json.dumps(xmltodict.parse(fd.read()))
     data = json.loads(doc)
     # Flatten the nested dictionary
