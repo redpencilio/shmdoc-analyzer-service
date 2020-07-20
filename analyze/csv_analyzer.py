@@ -108,7 +108,7 @@ def predict_seperator(filename):
 
 def make_dict_relative(dictionary, size):
     for type in dictionary:
-        idx = index(type)
+        idx = type_url(type)
         if isinstance(dictionary[idx], dict):
             dictionary[idx] = make_dict_relative(dictionary[idx], size)
         else:
@@ -117,7 +117,8 @@ def make_dict_relative(dictionary, size):
 
 
 def find_most_occuring(occurrences):
-    most_occuring = "I have no idea :-("
+    global typeUri
+    most_occuring = typeUri.format(type="anyType")
     most_occuring_count = 0
     for type in occurrences:
         if occurrences[type] > most_occuring_count:
@@ -178,6 +179,15 @@ def export_json(filename, data):
     # with open(filename, 'w') as fp:
     #     json.dump(data, fp)
 
+def get_string_lengths(column_data):
+    lengths = set()
+    for el in column_data:
+        try:
+            if el is not None:
+                lengths.add(len(el))
+        except:
+            continue
+    return lengths
 
 def analyze(data):
     """
@@ -191,6 +201,7 @@ def analyze(data):
 
     # finding the type of each column
     for column in data:
+        print("Analyzing column {}".format(column))
         col_obj = column_file.Column(column)  # TODO: Retrieve previously created col_obj and check if we should process
 
         column_data = data[column]
@@ -215,7 +226,7 @@ def analyze(data):
 
         str_types = [type_url(str), type_url("datetime")]
         if col_obj.data_type in str_types:
-            str_lengths = [len(el) for el in column_data]
+            str_lengths = get_string_lengths(column_data)
             col_obj.mean = 0 if len(str_lengths) == 0 else (
                         float(sum(str_lengths)) / len(str_lengths))  # the avg length
             col_obj.median = median(str_lengths)  # statistics.median
