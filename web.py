@@ -101,11 +101,17 @@ def run_job(uuid):
     """
     print("Starting job with uuid", uuid)
     # Query job from database
+
+    # TODO: code below is for files. When the job with given uuid contains a reference to an SQL database,
+    #  you should pass it to the analyze function with a pandas dataframe
+    #  (you can do this by using pandas.read_sql_table(...) or panda.read_sql(...)
+
     # Query file from database
     file_location, uri, extension, job_uri = get_job_file(uuid)
     # Read file
     # Processing
     result = analyze_file(file_location, extension)
+
     # Write result to database columns
     for column in result:
         add_column(column, job_uri)
@@ -113,5 +119,6 @@ def run_job(uuid):
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
-    return flask.jsonify({"Message" : "You did it! The columns were succesfully added :-) Enjoy your day!"})
+    return flask.jsonify({"Message": "You did it! The columns were succesfully added :-) Enjoy your day!",
+                          "Note": "If you don't see anything added, it might be because there were no columns to do the analysis on or the file type is not supported"})
     # Write results
