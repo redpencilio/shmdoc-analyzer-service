@@ -8,12 +8,10 @@ from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
 
-import os
-path = os.getcwd()
-if path == "/home/arno/Documents/shmdoc/shmdoc-analyzer-service/analyze":
-    import column as column_file # Use this one when using debug.py
-else:
-    from .. import column as column_file # Use this one when using docker
+try:
+    from .. import column as column_file  # Use this one when using docker
+except:
+    import column as column_file  # Use this one when using debug.py
 
 from statistics import median
 
@@ -32,12 +30,10 @@ def type_url(type):
 
 def is_datetime(string):
     # Check whether there's any date / datetime somewhere in the string
-    # stricts requires there to be a year, month and day (without strict, even strings like "error" are a date somehow)
     matches = datefinder.find_dates(string)
-    # TODO: find out why the for loop doesn't work on the docker and whether the if matches works
     try:
         for match in matches:
-            # I didn't find a way to check len(matches), so this iteration solves it
+            # I didn't find a way to check len(matches) or matches.empty, so this iteration solves it
             return True
     except TypeError:
         pass  # No idea why a TypeError is raised sometimes, but this solves the problem temporarily :-)
@@ -48,20 +44,28 @@ def is_datetime(string):
 def analyze_string_type(element, occurrences):
     supported_strings = {"datetime": is_datetime}
 
+    added_somewhere = False
     for type in supported_strings:
+        # Check whether the string can be the current type
         if supported_strings[type](element):
+            # Created the type in the dict if it doesn't occur yet
             if type not in occurrences:
                 occurrences[type_url(type)] = 0
+            # Found an occurrence
+            added_somewhere = True
             occurrences[type_url(type)] += 1
-        else:
-            if type_url(str) not in occurrences:
-                occurrences[type_url(str)] = 0
-            occurrences[type_url(str)] += 1
+
+    if not added_somewhere:
+        # Fit's none of the types, so it's just a string
+        if type_url(str) not in occurrences:
+            occurrences[type_url(str)] = 0
+        occurrences[type_url(str)] += 1
 
     return occurrences
 
 
 def analyze_string_row(column_data):
+    # Finds the probable type for a row containing (mainly) strings
     occurrences = dict()
     for element in column_data:
         if not isinstance(element, str):
@@ -73,6 +77,8 @@ def analyze_string_row(column_data):
 
 
 def analyze_most_common(column_data):
+    # GEt the top 5 most occuring elements in the column with their relative occurrence
+
     common_elements = []
 
     try:
@@ -81,29 +87,12 @@ def analyze_most_common(column_data):
         most_common_element = c.most_common(5)  # get the nr. 5 most occuring elements
 
         for el in most_common_element:
-            occurance = {"element": el[0], "occurances": el[1] / column_data.size}
-            common_elements.append(occurance)
+            occurrence = {"element": el[0], "occurrences": el[1] / column_data.size}
+            common_elements.append(occurrence)
     except TypeError:
         # Typerror possible if data contains e.g. a list
         return []
     return common_elements
-
-
-def predict_seperator(filename):
-    file = open(filename, "r")
-    first_row = file.readline()
-
-    possible_seperators = [';', '\t', ',']
-    current_seperator = ''
-    occurances = 0
-
-    for sep in possible_seperators:
-        count = first_row.count(sep)
-        if count > occurances:
-            occurances = count
-            current_seperator = sep
-
-    return current_seperator
 
 
 def make_dict_relative(dictionary, size):
@@ -117,7 +106,9 @@ def make_dict_relative(dictionary, size):
 
 
 def find_most_occuring(occurrences):
+    # Given a dict containing elements with a key and a number as value, get the key with the highest value
     global typeUri
+    # No most occuring, so it can be any type
     most_occuring = typeUri.format(type="anyType")
     most_occuring_count = 0
     for type in occurrences:
@@ -129,10 +120,10 @@ def find_most_occuring(occurrences):
 
 def predict_type(column_data, col_obj):
     occurrences = dict()
-    occurrences["empty"] = 0
 
     global typeMap
     # No occurrences at the beginning
+    occurrences["empty"] = 0
     for type_ in typeMap:
         occurrences[type_url(type_)] = 0
 
@@ -145,6 +136,8 @@ def predict_type(column_data, col_obj):
             occurrences[type_url(float)] -= 1  # Because it's actually not a float, but empty
 
         for type_ in typeMap:
+            # Only check for trivial types (int, float, str, bool)
+            # Other types (e.g. datetime) must be checked afterwards
             if isinstance(type_, type):
                 if isinstance(element, type_):
                     occurrences[type_url(type_)] += 1
@@ -164,22 +157,17 @@ def predict_type(column_data, col_obj):
         # Don't process columns with only empty elements
         col_obj.disable_processing = True
 
-    # Make the absolute values relative
-    # TODO: still relative required?
-    # occurrences = make_dict_relative(occurrences, column_data.size)
-
-    return col_obj
-
 
 def export_json(filename, data):
+    # Ecport the 'data' dictionary as json
     with open(filename, 'w') as file:
         json.dump(data, file, indent=4, sort_keys=True,
                   separators=(', ', ': '), ensure_ascii=False,
                   cls=NumpyEncoder)
-    # with open(filename, 'w') as fp:
-    #     json.dump(data, fp)
+
 
 def get_string_lengths(column_data):
+    # Get a set containing the length of the elements in the database
     lengths = set()
     for el in column_data:
         try:
@@ -189,6 +177,7 @@ def get_string_lengths(column_data):
             continue
     return lengths
 
+
 def analyze(data):
     """
     The main analyze function
@@ -197,17 +186,21 @@ def analyze(data):
     """
     columns = []
 
-    data_info = dict()  # Contains the info about each column
-
     # finding the type of each column
     for column in data:
+        # TODO: Check for changes sinces last analysis (if not changed, you can skip the analysis)
+        #  Also check previously created col_obj whether we should process (col_obj.disable_processing)
+        #  For this we should keep track of when the last analysis was
+
         print("Analyzing column {}".format(column))
-        col_obj = column_file.Column(column)  # TODO: Retrieve previously created col_obj and check if we should process
+        col_obj = column_file.Column(column)
 
+        # Get the data from the current column
         column_data = data[column]
-        stats = dict()
 
-        col_obj = predict_type(column_data, col_obj)
+        # Arguments get passed by reference (and edited)
+        predict_type(column_data, col_obj)
+
         if col_obj.disable_processing:
             # Can be enabled if all empty
             # There is nothing useful to say about most common nan's in an empty column
@@ -222,27 +215,16 @@ def analyze(data):
             col_obj.median = column_data.median()
             col_obj.min = column_data.min()
             col_obj.max = column_data.max()
-            stats["sd"] = column_data.std()  # Standard deviation
 
         str_types = [type_url(str), type_url("datetime")]
         if col_obj.data_type in str_types:
             str_lengths = get_string_lengths(column_data)
             col_obj.mean = 0 if len(str_lengths) == 0 else (
-                        float(sum(str_lengths)) / len(str_lengths))  # the avg length
+                    float(sum(str_lengths)) / len(str_lengths))  # the avg length
             col_obj.median = median(str_lengths)  # statistics.median
             col_obj.min = min(str_lengths)  # min length
             col_obj.max = max(str_lengths)  # max length
-            # stats["str-data"] = analyze_string_row(column_data) # gets already analyzed in type prediction
-
-        # Add a timestamp for when the last update was
-        stats["timestamp"] = str(datetime.now())
-
-        data_info[column] = stats
 
         columns.append(col_obj)
 
-    # pprint(data_info)
-    export_json("report.json", data_info)
-
     return columns
-    # return data_info
