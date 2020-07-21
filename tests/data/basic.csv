@@ -1,0 +1,4 @@
+my_str,my_int,my_float,my_bool,my_date,my_ref,my_uri
+vliz,20,3.1415926535,0,2000-01-01,,http://vliz.be/
+marc,50,9.8,1,1970-05-06,vliz,http://mpo.portier.info/
+,0,,1,,,

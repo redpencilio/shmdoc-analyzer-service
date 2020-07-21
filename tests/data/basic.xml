@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root xmlns="http://example.com/my-xml-ns/">
+    <info date="1970-01-01">
+        <name>xml test</name>
+    </info>
+    <data>
+        <row my_str="vliz">
+            <my_int>20</my_int>
+            <my_uri>http://vliz.be/</my_uri>
+            <my_float>239087.35486</my_float>
+            <my_bool />
+        </row>
+        <row my_str="mpo">
+            <my_int>50</my_int>
+            <my_uri>http://vliz.be/</my_uri>
+            <my_float>239087.35486</my_float>
+            <my_bool />
+        </row>
+    </data>
+</root>

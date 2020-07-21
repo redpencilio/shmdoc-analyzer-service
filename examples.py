@@ -1,7 +1,7 @@
 
 @app.route("/exampleMethod")
 def exampleMethod():
-    return "test"
+    return "tests"
 
 
 @app.route("/exampleQuery")
