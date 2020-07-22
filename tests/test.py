@@ -96,6 +96,12 @@ class TestFile(unittest.TestCase):
         result = analyze_file('tests/data/basic.xml', 'xml')
         self.assertEqual(len(result), 5)
 
+    def test_null_vs_empty_json(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
+        result = analyze_file('tests/data/null_vs_empty.json', 'json')
+        self.assertEqual(len(result), 2)
+        self.check_column(result[1], missing_count=1, null_count=1, record_count=4)
+
 
 if __name__ == '__main__':
     unittest.main()

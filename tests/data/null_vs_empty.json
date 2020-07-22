@@ -1,0 +1,23 @@
+{
+  "info": {
+    "name": "Null vs Empty test",
+    "about": "A test to check the difference between null, empty"
+  },
+  "data": [
+    {
+      "my_str": "A",
+      "test": ""
+    },
+    {
+      "my_str": "B",
+      "test": null
+    },
+    {
+      "my_str": "C",
+      "test": "PEANUT BUTTER JELLY TIME!!!"
+    },
+    {
+      "my_str": "D"
+    }
+  ]
+} 
