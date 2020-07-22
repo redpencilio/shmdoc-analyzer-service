@@ -2,10 +2,10 @@ import flask
 import escape_helpers
 import helpers
 from pprint import pprint
-from .analyze.file_analyzer import analyze_file
+# from .analyze.file_analyzer import analyze_file
 from numpyencoder import NumpyEncoder
 
-from .tests.test import TestFile
+# from .tests.test import TestFile
 import unittest
 
 def get_job_uri(uuid):
@@ -98,7 +98,9 @@ def add_column(column, uri):
 @app.route("/schema-analysis-jobs/test")
 def run_tests():
     # Run the tests from tests/test.py
+    print("Starting tests...")
     unittest.main()
+    print("Tests done.")
     return "Tests done. You can see the results in the terminal output."
 
 # zelfde formaat voor andere acties (naast 'run')

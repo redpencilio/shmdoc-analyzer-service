@@ -38,7 +38,11 @@ def find_longest_list(data):
     """
     if not isinstance(data, (dict, list)):
         return []
-    longest_list = data  # with length data
+
+    longest_list = []
+    if children_same_columns(data):
+        longest_list = data  # with length data
+
     for child in data:
         # if not isinstance(data[child], (dict, list)):
         #     continue
