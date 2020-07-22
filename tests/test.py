@@ -17,7 +17,7 @@ class TestFile(unittest.TestCase):
         # TODO: Dit is een veel te vage test, elke test zou op 1 specifiek ding moeten testen
         #  in dit geval zou ik dan de focus van deze test op het inlezen ven meerdere kolommen bij csv's leggen
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('../tests/data/basic.csv', 'csv')
+        result = analyze_file('tests/data/basic.csv', 'csv')
 
         self.assertTrue(result is not None)
         self.assertEqual(len(result), 6)
@@ -80,7 +80,7 @@ class TestFile(unittest.TestCase):
 
     def test_basic_json(self):
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('../tests/data/basic.json', 'json')
+        result = analyze_file('tests/data/basic.json', 'json')
         self.assertEqual(len(result), 7)
 
         self.check_column(result[0], name="my_str", record_count=4, missing_count=0)
@@ -88,7 +88,7 @@ class TestFile(unittest.TestCase):
 
     def test_basic_xml(self):
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('../tests/data/basic.xml', 'xml')
+        result = analyze_file('tests/data/basic.xml', 'xml')
         self.assertEqual(len(result), 5)
 
 
