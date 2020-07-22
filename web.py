@@ -2,7 +2,7 @@ import flask
 import escape_helpers
 import helpers
 from pprint import pprint
-# from .analyze.file_analyzer import analyze_file
+from .analyze.file_analyzer import analyze_file
 from numpyencoder import NumpyEncoder
 
 # from .tests.test import TestFile
