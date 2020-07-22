@@ -16,19 +16,21 @@ except:
 
 from statistics import median
 
-typeUri = "http://www.w3.org/2001/XMLSchema#{type}"
-typeMap = {bool: typeUri.format(type="boolean"),
-           int: typeUri.format(type="integer"),
-           float: typeUri.format(type="float"),
-           str: typeUri.format(type="string"),
-           "datetime": typeUri.format(type="dateTime"),
-           "uri": typeUri.format(type="anyURI")}
+
+def is_int(el):
+    return isinstance(el, int)
 
 
-def type_url(type):
-    global typeMap
-    return typeMap[type]
+def is_bool(el):
+    return isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1))
 
+
+def is_float(el):
+    return isinstance(el, float)
+
+
+def is_str(el):
+    return isinstance(el, str)
 
 def is_datetime(string):
     # Check whether there's any date / datetime somewhere in the string
@@ -52,7 +54,22 @@ def is_uri(string):
         return all([result.scheme, result.netloc, result.path])
     except:
         return False
-    
+
+typeUri = "http://www.w3.org/2001/XMLSchema#{type}"
+typeMap = {bool: (typeUri.format(type="boolean"), is_bool),
+           int: (typeUri.format(type="integer"), is_int),
+           float: (typeUri.format(type="float"), is_float),
+           str: (typeUri.format(type="string"), is_str),
+           "datetime": (typeUri.format(type="dateTime"), is_datetime),
+           "uri": (typeUri.format(type="anyURI"), is_uri)}
+
+
+def type_url(type):
+    global typeMap
+    return typeMap[type][0]
+
+
+
 
 
 # Given a string, what does the string probably contain?
@@ -157,9 +174,8 @@ def predict_type(column_data, col_obj):
         for type_ in typeMap:
             # Only check for trivial types (int, float, str, bool)
             # Other types (e.g. datetime) must be checked afterwards
-            if isinstance(type_, type):
-                if isinstance(element, type_):
-                    occurrences[type_url(type_)] += 1
+            if isinstance(type_, type) and typeMap[type_][1](element):
+                occurrences[type_url(type_)] += 1
 
     col_obj.missing_count = occurrences["empty"]
 

@@ -20,7 +20,7 @@ class TestFile(unittest.TestCase):
         result = analyze_file('tests/data/basic.csv', 'csv')
 
         self.assertTrue(result is not None)
-        self.assertEqual(len(result), 6)
+        self.assertEqual(len(result), 7)
 
         self.check_column(result[0],
                           name="my_str",
@@ -55,7 +55,7 @@ class TestFile(unittest.TestCase):
         self.check_column(result[3],
                           name="my_bool",
                           record_count=3,
-                          # TODO: data_type="http://www.w3.org/2001/XMLSchema#boolean",
+                          data_type="http://www.w3.org/2001/XMLSchema#boolean",
                           min=0,
                           max=1,
                           median=1,
@@ -73,6 +73,11 @@ class TestFile(unittest.TestCase):
                           missing_count=1)
 
         self.check_column(result[5],
+                          name="my_ref",
+                          record_count=3,
+                          missing_count=2)
+
+        self.check_column(result[6],
                           name="my_uri",
                           record_count=3,
                           # TODO: data_type
