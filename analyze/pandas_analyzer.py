@@ -7,6 +7,7 @@ from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
+from urllib.parse import urlparse
 
 try:
     from .. import column as column_file  # Use this one when using docker
@@ -42,12 +43,25 @@ def is_datetime(string):
         pass  # No idea why a TypeError is raised sometimes, but this solves the problem temporarily :-)
     return False
 
+
+def is_uri(string):
+    # Check wheter there's a uri in this string
+    # NOTE: this function will only check for absolute URI's, relative URI's are not accepted.
+    # Even though the xsd:type used is anyURI (which also encompasses relative URI's)
+    # source https://stackoverflow.com/questions/7160737/python-how-to-validate-a-url-in-python-malformed-or-not
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc, result.path])
+    except:
+        return False
+
 typeUri = "http://www.w3.org/2001/XMLSchema#{type}"
 typeMap = {bool: (typeUri.format(type="boolean"), is_bool),
            int: (typeUri.format(type="integer"), is_int),
            float: (typeUri.format(type="float"), is_float),
            str: (typeUri.format(type="string"), is_str),
-           "datetime": (typeUri.format(type="dateTime"), is_datetime)}
+           "datetime": (typeUri.format(type="dateTime"), is_datetime),
+           "uri": (typeUri.format(type="anyURI"), is_uri)}
 
 
 def type_url(type):
@@ -55,9 +69,13 @@ def type_url(type):
     return typeMap[type][0]
 
 
+
+
+
 # Given a string, what does the string probably contain?
 def analyze_string_type(element, occurrences):
-    supported_strings = {"datetime": is_datetime}
+    supported_strings = {"datetime": is_datetime,
+                         "uri"     : is_uri}
 
     added_somewhere = False
     for type in supported_strings:
