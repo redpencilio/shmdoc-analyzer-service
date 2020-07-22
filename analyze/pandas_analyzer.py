@@ -40,6 +40,7 @@ string.subtypes.append(Type("datetime", typeUri.format(type="dateTime"), is_date
 string.subtypes.append(Type("uri", typeUri.format(type="anyURI"), is_uri, []))
 
 anytype = Type("anyType", typeUri.format(type="anyType"), is_any, [])
+# anyType is just the default, should never be selected with the validation tests (only as default if no occurrences)
 
 supported_types = [boolean, integer, float_num, string, anytype]
 
@@ -64,8 +65,8 @@ def type_url(type):
     return find_type(supported_types, type).uri
 
 
-# Given a string, what does the string probably contain?
 def analyze_subtype(element, occurrences, expected_type_obj):
+# Given an element, which of the expected_type_obj subtypes is it probably? Or is it just the expected_type_obj?
 
     added_somewhere = False
     for type in expected_type_obj.subtypes:
@@ -100,9 +101,9 @@ def analyze_subtype_column(column_data, expected_type_obj):
 
     # If there are still subtypes left, recursively search for the most probably type in there
     if probable_type_obj.subtypes and probable_type_obj.name != expected_type_obj.name:
-        probable_type = find_most_occuring(occurrences)
-        probable_type_obj = find_type(supported_types, probable_type)
-        analyze_subtype_column(column_data, probable_type_obj)
+        probable_type = analyze_subtype_column(column_data, probable_type_obj)
+        # probable_type_obj = find_type(supported_types, probable_type)
+
 
     return probable_type
 
@@ -143,7 +144,7 @@ def find_most_occuring(occurrences):
     most_occuring = "anyType"
     most_occuring_count = 0
     for type in occurrences:
-        if type == "empty":
+        if type == "empty" or type == "none":
             # Skip empty fields (e.g. 3 empty, 1 str, then it should be a str instead of empty)
             continue
         if occurrences[type] > most_occuring_count:
@@ -158,6 +159,7 @@ def predict_type(column_data, col_obj):
     global supported_types
     # No occurrences at the beginning
     occurrences["empty"] = 0
+    occurrences["none"] = 0
     for type_ in supported_types:
         occurrences[type_.name] = 0
 
@@ -169,6 +171,9 @@ def predict_type(column_data, col_obj):
             occurrences["empty"] += 1
             occurrences["float"] -= 1  # Because it's actually not a float, but empty
 
+        if element is None:
+            occurrences["none"] += 1
+
         for type_ in supported_types:
             # Only check for trivial types (int, float, str, bool)
             # Other types (e.g. datetime) must be checked afterwards
@@ -176,6 +181,7 @@ def predict_type(column_data, col_obj):
                 occurrences[type_.name] += 1
 
     col_obj.missing_count = occurrences["empty"]
+    col_obj.null_count = occurrences["none"]
 
     # Get the most occurring type
     expected_type = find_most_occuring(occurrences)
@@ -184,7 +190,7 @@ def predict_type(column_data, col_obj):
         # Analyze what subtype the type actualy is
         expected_type = analyze_subtype_column(column_data, expected_type_obj)
 
-    if expected_type != "empty":
+    if expected_type != "empty" and expected_type != "none":
         col_obj.data_type = type_url(expected_type)
     else:
         # Don't process columns with only empty elements
