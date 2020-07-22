@@ -21,8 +21,8 @@ typeMap = {bool: typeUri.format(type="boolean"),
            int: typeUri.format(type="integer"),
            float: typeUri.format(type="float"),
            str: typeUri.format(type="string"),
-           "datetime": typeUri.format(type="dateTime")
-           "uri": typeUri.format(type="anyURI"}
+           "datetime": typeUri.format(type="dateTime"),
+           "uri": typeUri.format(type="anyURI")}
 
 
 def type_url(type):
