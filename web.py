@@ -5,6 +5,8 @@ from pprint import pprint
 from .analyze.file_analyzer import analyze_file
 from numpyencoder import NumpyEncoder
 
+from .tests.test import TestFile
+import unittest
 
 def get_job_uri(uuid):
     """
@@ -92,6 +94,12 @@ def add_column(column, uri):
     print(query)
     helpers.query(query)
 
+# zelfde formaat voor andere acties (naast 'run')
+@app.route("/schema-analysis-jobs/test")
+def run_tests():
+    # Run the tests from tests/test.py
+    unittest.main()
+    return "Tests done. You can see the results in the terminal output."
 
 # zelfde formaat voor andere acties (naast 'run')
 @app.route("/schema-analysis-jobs/<uuid>/run")

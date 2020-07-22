@@ -1,6 +1,8 @@
 import unittest
-from analyze.file_analyzer import analyze_file
-
+try:
+    from .analyze.file_analyzer import analyze_file
+except ImportError:
+    from analyze.file_analyzer import analyze_file
 
 # Unittests for files (csv, xml and json)
 # Note: The tests are not seperated, since they are all getting reduced to a pandas frame
@@ -12,6 +14,7 @@ class TestFile(unittest.TestCase):
             self.assertEqual(getattr(column, key), value)
 
     def test_basic_csv(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
         result = analyze_file('../tests/data/basic.csv', 'csv')
 
         self.assertTrue(result is not None)
@@ -71,4 +74,13 @@ class TestFile(unittest.TestCase):
                           name="my_uri",
                           record_count=3,
                           # TODO: data_type
-                          missing_count=0)
+                          missing_count=1)
+
+    def test_basic_json(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
+        result = analyze_file('../tests/data/basic.json', 'json')
+        self.assertEqual(len(result), 7)
+
+
+if __name__ == '__main__':
+    unittest.main()

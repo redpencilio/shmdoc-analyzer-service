@@ -18,19 +18,18 @@ def children_same_columns(data):
     """
     Check if all children in the dict have the same column headers
     """
-    children = None
+    child_headers = []
     for subcolumn in data:
         headers = ()
         if isinstance(data, dict):
             headers = get_child_headers(data[subcolumn])
         else:
             headers = get_child_headers(subcolumn)
-        if children is None:
-            children = headers
-        else:
-            if headers != children:
-                return False  # TODO: Maybe don't require to be exactly the same, but for 50%?
-    return True
+
+        if len(headers) and headers in child_headers:
+            return True
+        child_headers.append(headers)
+    return False
 
 
 def find_longest_list(data):

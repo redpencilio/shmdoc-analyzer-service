@@ -112,6 +112,9 @@ def find_most_occuring(occurrences):
     most_occuring = typeUri.format(type="anyType")
     most_occuring_count = 0
     for type in occurrences:
+        if type == "empty":
+            # Skip empty fields (e.g. 3 empty, 1 str, then it should be a str instead of empty)
+            continue
         if occurrences[type] > most_occuring_count:
             most_occuring_count = occurrences[type]
             most_occuring = type
@@ -184,6 +187,7 @@ def analyze(data):
     The parameter data is a pandas dataframe
     Returns a list of columns: for each column of the data an object with the information attached
     """
+    # TODO: Null
     columns = []
 
     # finding the type of each column
