@@ -20,6 +20,7 @@ def predict_csv_seperator(filename):
             occurances = count
             current_seperator = sep
 
+    file.close()
     return current_seperator
 
 
