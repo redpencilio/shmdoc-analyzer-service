@@ -49,7 +49,7 @@ def analyze_string_type(element, occurrences):
         # Check whether the string can be the current type
         if supported_strings[type](element):
             # Created the type in the dict if it doesn't occur yet
-            if type not in occurrences:
+            if type_url(type) not in occurrences:
                 occurrences[type_url(type)] = 0
             # Found an occurrence
             added_somewhere = True
