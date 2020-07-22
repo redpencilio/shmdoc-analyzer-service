@@ -80,7 +80,7 @@ class TestFile(unittest.TestCase):
         self.check_column(result[6],
                           name="my_uri",
                           record_count=3,
-                          # TODO: data_type
+                          data_type="http://www.w3.org/2001/XMLSchema#anyURI",
                           missing_count=1)
 
     def test_basic_json(self):
