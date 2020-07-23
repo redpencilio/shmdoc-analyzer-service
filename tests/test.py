@@ -105,6 +105,15 @@ class TestCsv(ShmdocTest):
         self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=1.0, mean=2/3,
                           min=0, max=1)
 
+    def test_missing_data(self):
+        result = analyze_file('tests/data/csv/missing_data.csv', "csv")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#integer", median=5, mean=5,
+                          min=5, max=5, missing_count=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#string", median=8, mean=8,
+                          min=4, max=12, missing_count=1)
+        self.check_column(result[2], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=1, mean=1,
+                          min=1, max=1, missing_count=1)
+
 
 class TestXml(ShmdocTest):
     def test_basic_xml(self):
