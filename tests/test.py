@@ -88,8 +88,9 @@ class TestCsv(ShmdocTest):
 
     def test_empty(self):
         result = analyze_file('tests/data/csv/empty.csv', 'csv')
-        self.check_column(result[0], missing_count=3, null_count=0)
-        self.check_column(result[1], missing_count=0, null_count=0)
+        self.check_column(result[0], missing_count=3, null_count=0,
+                          disable_processing=True)  # All empty, so processing should be disabled
+        self.check_column(result[1], missing_count=0, null_count=0, disable_processing=False)
 
     def test_uri(self):
         result = analyze_file('tests/data/csv/uri.csv', 'csv')

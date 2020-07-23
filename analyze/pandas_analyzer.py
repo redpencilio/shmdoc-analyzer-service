@@ -188,6 +188,11 @@ def predict_type(column_data, col_obj):
     col_obj.missing_count = occurrences["empty"]
     col_obj.null_count = occurrences["none"]
 
+    if col_obj.missing_count == col_obj.record_count:
+        # Don't process columns with only empty elements
+        col_obj.disable_processing = True
+        return
+
     # Get the most occurring type
     expected_type = find_most_occuring(occurrences)
     expected_type_obj = find_type(supported_types, expected_type)
@@ -242,6 +247,7 @@ def analyze(data):
 
         # Get the data from the current column
         column_data = data[column]
+        col_obj.record_count = column_data.size
 
         # Arguments get passed by reference (and edited)
         predict_type(column_data, col_obj)
@@ -249,9 +255,9 @@ def analyze(data):
         if col_obj.disable_processing:
             # Can be enabled if all empty
             # There is nothing useful to say about most common nan's in an empty column
+            columns.append(col_obj)
             continue
 
-        col_obj.record_count = column_data.size
         col_obj.common_values = analyze_most_common(column_data)
 
         numerical_types = [type_url("bool"), type_url("int"), type_url("float")]
