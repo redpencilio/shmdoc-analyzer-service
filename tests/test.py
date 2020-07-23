@@ -7,7 +7,6 @@ except ImportError:
 
 
 # Unittests for files (csv, xml and json)
-# Note: The tests are not seperated, since they are all getting reduced to a pandas frame
 
 class ShmdocTest(unittest.TestCase):
     def check_column(self, column, **kwargs):
@@ -17,7 +16,7 @@ class ShmdocTest(unittest.TestCase):
 
 class TestCsv(ShmdocTest):
 
-    def test_basic_csv(self):
+    def test_basic(self):
         # TODO: Dit is een veel te vage test, elke test zou op 1 specifiek ding moeten testen
         #  in dit geval zou ik dan de focus van deze test op het inlezen ven meerdere kolommen bij csv's leggen
         # http endpointjs /jobs/id/run, /jobs/tests
@@ -87,8 +86,10 @@ class TestCsv(ShmdocTest):
                           data_type="http://www.w3.org/2001/XMLSchema#anyURI",
                           missing_count=1)
 
-
-
+    def test_empty(self):
+        result = analyze_file('tests/data/csv/empty.csv', 'csv')
+        self.check_column(result[0], missing_count=3, null_count=0)
+        self.check_column(result[1], missing_count=0, null_count=0)
 
 
 class TestXml(ShmdocTest):
@@ -96,6 +97,15 @@ class TestXml(ShmdocTest):
         # http endpointjs /jobs/id/run, /jobs/tests
         result = analyze_file('tests/data/xml/basic.xml', 'xml')
         self.assertEqual(len(result), 5)
+
+    def test_empty(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
+        result = analyze_file('tests/data/xml/empty.xml', 'xml')
+        self.assertEqual(len(result), 4)
+        self.check_column(result[1], missing_count=0, null_count=0)
+        self.check_column(result[2], missing_count=2, null_count=0)
+        self.check_column(result[3], missing_count=0, null_count=3)
+
 
 class TestJson(ShmdocTest):
 
