@@ -96,7 +96,7 @@ def add_column(column, uri):
 
 
 # zelfde formaat voor andere acties (naast 'run')
-@app.route("/schema-analysis-jobs/<uuid>/run")
+@app.route("/schema-analysis-jobs/<uuid>/run", methods=['GET','POST'])
 def run_job(uuid):
     """
     Queries job from database, gets file from job, reads file and processes
