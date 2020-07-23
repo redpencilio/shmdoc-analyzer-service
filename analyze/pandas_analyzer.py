@@ -226,6 +226,16 @@ def get_string_lengths(column_data):
             continue
     return lengths
 
+def get_numerical_data(column_data):
+    # Get a set containing the length of the elements in the database
+    data = set()
+    for el in column_data:
+        try:
+            if el is not None and not (isinstance(el, float) and math.isnan(el)):
+                data.add(float(el))
+        except:
+            continue
+    return data
 
 def analyze(data):
     """
@@ -260,21 +270,23 @@ def analyze(data):
 
         col_obj.common_values = analyze_most_common(column_data)
 
+        num_analysis = False
         numerical_types = [type_url("bool"), type_url("int"), type_url("float")]
         if col_obj.data_type in numerical_types:
-            col_obj.mean = column_data.mean()
-            col_obj.median = column_data.median()
-            col_obj.min = column_data.min()
-            col_obj.max = column_data.max()
+            numerical_data = get_numerical_data(column_data)
+            num_analysis = True
 
         str_types = [type_url("str"), type_url("datetime")]
         if col_obj.data_type in str_types:
-            str_lengths = get_string_lengths(column_data)
-            col_obj.mean = 0 if len(str_lengths) == 0 else (
-                    float(sum(str_lengths)) / len(str_lengths))  # the avg length
-            col_obj.median = median(str_lengths)  # statistics.median
-            col_obj.min = min(str_lengths)  # min length
-            col_obj.max = max(str_lengths)  # max length
+            num_analysis = True
+            numerical_data = get_string_lengths(column_data)
+
+        if num_analysis:
+            col_obj.mean = 0 if len(numerical_data) == 0 else (
+                    float(sum(numerical_data)) / len(numerical_data))  # the avg length
+            col_obj.median = median(numerical_data)  # statistics.median
+            col_obj.min = min(numerical_data)  # min length
+            col_obj.max = max(numerical_data)  # max length
 
         columns.append(col_obj)
 

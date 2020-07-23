@@ -6,7 +6,16 @@ def is_any(el):
     return False
 
 def is_int(el):
-    return isinstance(el, int)
+    if isinstance(el, int):
+        return True
+
+    # Check whether the string corrsponds to an integer
+    # https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+    # Response by Shavais
+    try:
+        return float(str(el)).is_integer()
+    except:
+        return False
 
 
 def is_bool(el):

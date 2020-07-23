@@ -61,8 +61,8 @@ class TestCsv(ShmdocTest):
                           data_type="http://www.w3.org/2001/XMLSchema#boolean",
                           min=0,
                           max=1,
-                          median=1,
-                          mean=2 / 3,
+                          median=0.5,
+                          mean=2/3,
                           missing_count=0)
 
         self.check_column(result[4],
@@ -96,6 +96,10 @@ class TestCsv(ShmdocTest):
         result = analyze_file('tests/data/csv/uri.csv', 'csv')
         self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
 
+    def test_int(self):
+        result = analyze_file('tests/data/csv/int.csv', 'csv')
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#integer")
+
 
 class TestXml(ShmdocTest):
     def test_basic_xml(self):
@@ -111,9 +115,13 @@ class TestXml(ShmdocTest):
         self.check_column(result[2], missing_count=2, null_count=0)
         self.check_column(result[3], missing_count=0, null_count=3)
 
-    def test_xml(self):
+    def test_uri(self):
         result = analyze_file('tests/data/xml/uri.xml', 'xml')
         self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
+
+    def test_int(self):
+        result = analyze_file('tests/data/xml/int.xml', 'xml')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#integer", min=6, max=9, mean=7.5, median=7.5)
 
 
 class TestJson(ShmdocTest):
