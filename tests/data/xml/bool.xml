@@ -1,0 +1,10 @@
+<data>
+    <row>
+        <text_bool>true</text_bool>
+        <int_bool>1</int_bool>
+    </row>
+    <row>
+        <text_bool>false</text_bool>
+        <int_bool>0</int_bool>
+    </row>
+</data>

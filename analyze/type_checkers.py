@@ -1,16 +1,32 @@
 import datefinder
 from urllib.parse import urlparse
 
+
 def is_any(el):
     # Always prevent is_any getting selected
     return False
 
+
 def is_int(el):
-    return isinstance(el, int)
+    if isinstance(el, int):
+        return True
+
+    # Check whether the string corrsponds to an integer
+    # https://stackoverflow.com/questions/1265665/how-can-i-check-if-a-string-represents-an-int-without-using-try-except
+    # Response by Shavais
+    try:
+        return float(str(el)).is_integer()
+    except:
+        return False
 
 
 def is_bool(el):
-    return isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1))
+    # return isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1))
+    if isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1)):
+        return True
+    return str(el).lower() in (
+        'true', '1', 't', 'y', 'yes',
+        'false', '0', 'f', 'n', 'no')
 
 
 def is_float(el):
