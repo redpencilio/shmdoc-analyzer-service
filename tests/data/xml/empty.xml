@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root xmlns="http://example.com/my-xml-ns/">
+    <info date="1970-01-01">
+        <name>xml test</name>
+    </info>
+    <data>
+        <row my_str="vliz">
+            <full>20</full>
+            <half_missing>5</half_missing>
+            <my_null/>
+        </row>
+        <row my_str="mpo">
+            <full>50</full>
+            <my_null/>
+        </row>
+<!--        test data is to get enough columns, so this section is recognized as the data we want to analyze-->
+        <row my_str="test_data">
+            <full>50</full>
+            <my_null/>
+        </row>
+    </data>
+</root>
