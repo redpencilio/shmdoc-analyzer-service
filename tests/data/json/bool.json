@@ -1,0 +1,12 @@
+{
+  "data": [
+    {
+      "int_bool": 0,
+      "text_bool": false
+    },
+    {
+      "int_bool": 1,
+      "text_bool": true
+    }
+  ]
+} 

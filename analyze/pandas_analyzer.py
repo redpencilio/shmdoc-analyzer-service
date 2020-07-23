@@ -228,12 +228,14 @@ def get_string_lengths(column_data):
 
 def get_numerical_data(column_data):
     # Get a set containing the length of the elements in the database
-    data = set()
+    data = list()
     for el in column_data:
         try:
             if el is not None and not (isinstance(el, float) and math.isnan(el)):
-                data.add(float(el))
+                data.append(float(el))
         except:
+            if is_bool(el):
+                data.append(float(el in ['true', '1', 't', 'y', 'yes',]))
             continue
     return data
 

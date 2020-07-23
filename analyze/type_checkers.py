@@ -1,9 +1,11 @@
 import datefinder
 from urllib.parse import urlparse
 
+
 def is_any(el):
     # Always prevent is_any getting selected
     return False
+
 
 def is_int(el):
     if isinstance(el, int):
@@ -19,7 +21,12 @@ def is_int(el):
 
 
 def is_bool(el):
-    return isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1))
+    # return isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1))
+    if isinstance(el, bool) or (is_int(el) and (el == 0 or el == 1)):
+        return True
+    return str(el).lower() in (
+        'true', '1', 't', 'y', 'yes',
+        'false', '0', 'f', 'n', 'no')
 
 
 def is_float(el):

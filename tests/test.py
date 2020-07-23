@@ -61,7 +61,7 @@ class TestCsv(ShmdocTest):
                           data_type="http://www.w3.org/2001/XMLSchema#boolean",
                           min=0,
                           max=1,
-                          median=0.5,
+                          median=1,
                           mean=2/3,
                           missing_count=0)
 
@@ -98,7 +98,12 @@ class TestCsv(ShmdocTest):
 
     def test_int(self):
         result = analyze_file('tests/data/csv/int.csv', 'csv')
-        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#integer")
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#integer", median=44.5, mean=44.5, min=19, max=70)
+
+    def test_bool(self):
+        result = analyze_file('tests/data/csv/bool.csv', "csv")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=1.0, mean=2/3,
+                          min=0, max=1)
 
 
 class TestXml(ShmdocTest):
@@ -123,6 +128,12 @@ class TestXml(ShmdocTest):
         result = analyze_file('tests/data/xml/int.xml', 'xml')
         self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#integer", min=6, max=9, mean=7.5, median=7.5)
 
+    def test_bool(self):
+        result = analyze_file('tests/data/xml/bool.xml', "xml")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
 
 class TestJson(ShmdocTest):
 
@@ -144,6 +155,12 @@ class TestJson(ShmdocTest):
         result = analyze_file('tests/data/json/uri.json', 'json')
         self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
 
+    def test_bool(self):
+        result = analyze_file('tests/data/json/bool.json', "json")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
 
 if __name__ == '__main__':
     unittest.main()
