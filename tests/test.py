@@ -91,6 +91,10 @@ class TestCsv(ShmdocTest):
         self.check_column(result[0], missing_count=3, null_count=0)
         self.check_column(result[1], missing_count=0, null_count=0)
 
+    def test_uri(self):
+        result = analyze_file('tests/data/csv/uri.csv', 'csv')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
+
 
 class TestXml(ShmdocTest):
     def test_basic_xml(self):
@@ -105,6 +109,10 @@ class TestXml(ShmdocTest):
         self.check_column(result[1], missing_count=0, null_count=0)
         self.check_column(result[2], missing_count=2, null_count=0)
         self.check_column(result[3], missing_count=0, null_count=3)
+
+    def test_xml(self):
+        result = analyze_file('tests/data/xml/uri.xml', 'xml')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
 
 
 class TestJson(ShmdocTest):
@@ -122,6 +130,10 @@ class TestJson(ShmdocTest):
         result = analyze_file('tests/data/json/null_vs_empty.json', 'json')
         self.assertEqual(len(result), 2)
         self.check_column(result[1], missing_count=1, null_count=1, record_count=4)
+
+    def test_uri(self):
+        result = analyze_file('tests/data/json/uri.json', 'json')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
 
 
 if __name__ == '__main__':
