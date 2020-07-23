@@ -1,23 +1,27 @@
 import unittest
+
 try:
     from .analyze.file_analyzer import analyze_file
 except ImportError:
     from analyze.file_analyzer import analyze_file
 
+
 # Unittests for files (csv, xml and json)
 # Note: The tests are not seperated, since they are all getting reduced to a pandas frame
 
-class TestFile(unittest.TestCase):
-
+class ShmdocTest(unittest.TestCase):
     def check_column(self, column, **kwargs):
         for key, value in kwargs.items():
             self.assertEqual(getattr(column, key), value)
+
+
+class TestCsv(ShmdocTest):
 
     def test_basic_csv(self):
         # TODO: Dit is een veel te vage test, elke test zou op 1 specifiek ding moeten testen
         #  in dit geval zou ik dan de focus van deze test op het inlezen ven meerdere kolommen bij csv's leggen
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('tests/data/basic.csv', 'csv')
+        result = analyze_file('tests/data/csv/basic.csv', 'csv')
 
         self.assertTrue(result is not None)
         self.assertEqual(len(result), 7)
@@ -83,22 +87,29 @@ class TestFile(unittest.TestCase):
                           data_type="http://www.w3.org/2001/XMLSchema#anyURI",
                           missing_count=1)
 
+
+
+
+
+class TestXml(ShmdocTest):
+    def test_basic_xml(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
+        result = analyze_file('tests/data/xml/basic.xml', 'xml')
+        self.assertEqual(len(result), 5)
+
+class TestJson(ShmdocTest):
+
     def test_basic_json(self):
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('tests/data/basic.json', 'json')
+        result = analyze_file('tests/data/json/basic.json', 'json')
         self.assertEqual(len(result), 7)
 
         self.check_column(result[0], name="my_str", record_count=4, missing_count=0)
         self.check_column(result[6], name="my_ref", record_count=4, missing_count=2)
 
-    def test_basic_xml(self):
+    def test_null_vs_empty(self):
         # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('tests/data/basic.xml', 'xml')
-        self.assertEqual(len(result), 5)
-
-    def test_null_vs_empty_json(self):
-        # http endpointjs /jobs/id/run, /jobs/tests
-        result = analyze_file('tests/data/null_vs_empty.json', 'json')
+        result = analyze_file('tests/data/json/null_vs_empty.json', 'json')
         self.assertEqual(len(result), 2)
         self.check_column(result[1], missing_count=1, null_count=1, record_count=4)
 

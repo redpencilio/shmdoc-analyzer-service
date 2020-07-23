@@ -116,9 +116,14 @@ def analyze_most_common(column_data):
     try:
         # Get inforation about the most occuring elements
         c = Counter(column_data)
-        most_common_element = c.most_common(5)  # get the nr. 5 most occuring elements
+        most_common_element = c.most_common(15)  # get the nr. 15 most occuring elements, select the top 5 that aren't NaN
 
         for el in most_common_element:
+            if isinstance(el[0], float) and math.isnan(el[0]):
+                # NaN's are not supported in json
+                continue
+            elif len(common_elements) == 5:
+                break
             occurrence = {"element": el[0], "occurrences": el[1] / column_data.size}
             common_elements.append(occurrence)
     except TypeError:
