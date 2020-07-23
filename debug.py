@@ -4,6 +4,6 @@ from pprint import pprint
 
 # result = analyze_file("../../hackathon-xml/emplyees.xml", "xml")
 
-# result = analyze_file("../../hackathon-xml/das6380.xml", "xml")
-result = analyze_file("../../all-datasets.json", "json")
+result = analyze_file('../nasa.xml', "xml")
+# result = analyze_file('../tests/data/null_vs_empty.json', 'json')
 pprint(result)

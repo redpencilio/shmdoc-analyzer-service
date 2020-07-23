@@ -38,6 +38,7 @@ def analyze_file(file_location, extension):
         print("File type not supported :-(")  # TODO: Should this raise an error or return empty list?
         return []
     # Analyze the pandas frame
+    print("Analyzing file...")
     result = analyze_data(data)
     return result
 
