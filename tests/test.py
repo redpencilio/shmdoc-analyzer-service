@@ -7,7 +7,6 @@ except ImportError:
 
 
 # Unittests for files (csv, xml and json)
-# Note: The tests are not seperated, since they are all getting reduced to a pandas frame
 
 class ShmdocTest(unittest.TestCase):
     def check_column(self, column, **kwargs):
@@ -17,7 +16,7 @@ class ShmdocTest(unittest.TestCase):
 
 class TestCsv(ShmdocTest):
 
-    def test_basic_csv(self):
+    def test_basic(self):
         # TODO: Dit is een veel te vage test, elke test zou op 1 specifiek ding moeten testen
         #  in dit geval zou ik dan de focus van deze test op het inlezen ven meerdere kolommen bij csv's leggen
         # http endpointjs /jobs/id/run, /jobs/tests
@@ -63,7 +62,7 @@ class TestCsv(ShmdocTest):
                           min=0,
                           max=1,
                           median=1,
-                          mean=2 / 3,
+                          mean=2/3,
                           missing_count=0)
 
         self.check_column(result[4],
@@ -87,8 +86,33 @@ class TestCsv(ShmdocTest):
                           data_type="http://www.w3.org/2001/XMLSchema#anyURI",
                           missing_count=1)
 
+    def test_empty(self):
+        result = analyze_file('tests/data/csv/empty.csv', 'csv')
+        self.check_column(result[0], missing_count=3, null_count=0,
+                          disable_processing=True)  # All empty, so processing should be disabled
+        self.check_column(result[1], missing_count=0, null_count=0, disable_processing=False)
 
+    def test_uri(self):
+        result = analyze_file('tests/data/csv/uri.csv', 'csv')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
 
+    def test_int(self):
+        result = analyze_file('tests/data/csv/int.csv', 'csv')
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#integer", median=44.5, mean=44.5, min=19, max=70)
+
+    def test_bool(self):
+        result = analyze_file('tests/data/csv/bool.csv', "csv")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=1.0, mean=2/3,
+                          min=0, max=1)
+
+    def test_missing_data(self):
+        result = analyze_file('tests/data/csv/missing_data.csv', "csv")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#integer", median=5, mean=5,
+                          min=5, max=5, missing_count=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#string", median=8, mean=8,
+                          min=4, max=12, missing_count=1)
+        self.check_column(result[2], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=1, mean=1,
+                          min=1, max=1, missing_count=1)
 
 
 class TestXml(ShmdocTest):
@@ -96,6 +120,29 @@ class TestXml(ShmdocTest):
         # http endpointjs /jobs/id/run, /jobs/tests
         result = analyze_file('tests/data/xml/basic.xml', 'xml')
         self.assertEqual(len(result), 5)
+
+    def test_empty(self):
+        # http endpointjs /jobs/id/run, /jobs/tests
+        result = analyze_file('tests/data/xml/empty.xml', 'xml')
+        self.assertEqual(len(result), 4)
+        self.check_column(result[1], missing_count=0, null_count=0)
+        self.check_column(result[2], missing_count=2, null_count=0)
+        self.check_column(result[3], missing_count=0, null_count=3)
+
+    def test_uri(self):
+        result = analyze_file('tests/data/xml/uri.xml', 'xml')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
+
+    def test_int(self):
+        result = analyze_file('tests/data/xml/int.xml', 'xml')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#integer", min=6, max=9, mean=7.5, median=7.5)
+
+    def test_bool(self):
+        result = analyze_file('tests/data/xml/bool.xml', "xml")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
 
 class TestJson(ShmdocTest):
 
@@ -113,6 +160,16 @@ class TestJson(ShmdocTest):
         self.assertEqual(len(result), 2)
         self.check_column(result[1], missing_count=1, null_count=1, record_count=4)
 
+    def test_uri(self):
+        result = analyze_file('tests/data/json/uri.json', 'json')
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#anyURI")
+
+    def test_bool(self):
+        result = analyze_file('tests/data/json/bool.json', "json")
+        self.check_column(result[0], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
+        self.check_column(result[1], data_type="http://www.w3.org/2001/XMLSchema#boolean", median=0.5, mean=0.5,
+                          min=0, max=1)
 
 if __name__ == '__main__':
     unittest.main()

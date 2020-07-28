@@ -188,6 +188,11 @@ def predict_type(column_data, col_obj):
     col_obj.missing_count = occurrences["empty"]
     col_obj.null_count = occurrences["none"]
 
+    if col_obj.missing_count == col_obj.record_count:
+        # Don't process columns with only empty elements
+        col_obj.disable_processing = True
+        return
+
     # Get the most occurring type
     expected_type = find_most_occuring(occurrences)
     expected_type_obj = find_type(supported_types, expected_type)
@@ -221,6 +226,18 @@ def get_string_lengths(column_data):
             continue
     return lengths
 
+def get_numerical_data(column_data):
+    # Get a set containing the length of the elements in the database
+    data = list()
+    for el in column_data:
+        try:
+            if el is not None and not (isinstance(el, float) and math.isnan(el)):
+                data.append(float(el))
+        except:
+            if is_bool(el):
+                data.append(float(el in ['true', '1', 't', 'y', 'yes',]))
+            continue
+    return data
 
 def analyze(data):
     """
@@ -242,6 +259,7 @@ def analyze(data):
 
         # Get the data from the current column
         column_data = data[column]
+        col_obj.record_count = column_data.size
 
         # Arguments get passed by reference (and edited)
         predict_type(column_data, col_obj)
@@ -249,26 +267,28 @@ def analyze(data):
         if col_obj.disable_processing:
             # Can be enabled if all empty
             # There is nothing useful to say about most common nan's in an empty column
+            columns.append(col_obj)
             continue
 
-        col_obj.record_count = column_data.size
         col_obj.common_values = analyze_most_common(column_data)
 
+        num_analysis = False
         numerical_types = [type_url("bool"), type_url("int"), type_url("float")]
         if col_obj.data_type in numerical_types:
-            col_obj.mean = column_data.mean()
-            col_obj.median = column_data.median()
-            col_obj.min = column_data.min()
-            col_obj.max = column_data.max()
+            numerical_data = get_numerical_data(column_data)
+            num_analysis = True
 
         str_types = [type_url("str"), type_url("datetime")]
         if col_obj.data_type in str_types:
-            str_lengths = get_string_lengths(column_data)
-            col_obj.mean = 0 if len(str_lengths) == 0 else (
-                    float(sum(str_lengths)) / len(str_lengths))  # the avg length
-            col_obj.median = median(str_lengths)  # statistics.median
-            col_obj.min = min(str_lengths)  # min length
-            col_obj.max = max(str_lengths)  # max length
+            num_analysis = True
+            numerical_data = get_string_lengths(column_data)
+
+        if num_analysis:
+            col_obj.mean = 0 if len(numerical_data) == 0 else (
+                    float(sum(numerical_data)) / len(numerical_data))  # the avg length
+            col_obj.median = median(numerical_data)  # statistics.median
+            col_obj.min = min(numerical_data)  # min length
+            col_obj.max = max(numerical_data)  # max length
 
         columns.append(col_obj)
 

@@ -94,14 +94,6 @@ def add_column(column, uri):
     print(query)
     helpers.query(query)
 
-# zelfde formaat voor andere acties (naast 'run')
-@app.route("/schema-analysis-jobs/test")
-def run_tests():
-    # Run the tests from tests/test.py
-    print("Starting tests...")
-    unittest.main()
-    print("Tests done.")
-    return "Tests done. You can see the results in the terminal output."
 
 # zelfde formaat voor andere acties (naast 'run')
 @app.route("/schema-analysis-jobs/<uuid>/run")

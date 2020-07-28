@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root xmlns="http://example.com/my-xml-ns/">
+    <data>
+        <row>
+            <uri>https://stackoverflow.com/</uri>
+        </row>
+        <row>
+            <uri>http://thepiratebay.com/</uri>
+        </row>
+    </data>
+</root>
