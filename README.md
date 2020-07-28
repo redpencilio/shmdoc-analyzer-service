@@ -64,6 +64,14 @@ When you change things in python, Flask should restart automatically, so you can
 ## Unittests
 We've written a few tests for the service, but didn't find a good way to test them inside the docker container. So the way you can currently run the test is not the way you should do it, but we didn't find a better solution for now.
 
+You first have to manually setup your environment, which docker does automatically for u:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+mv illegal/* .
+```
+
 To run the tests, you can use:
 ```bash
 python -m unittest tests/test.py 
