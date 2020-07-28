@@ -68,7 +68,7 @@ To run the tests, you can use:
 ```bash
 python -m unittest tests/test.py 
 ```
-Since you're not running this inside the docker-container, you should add the `escape_helpers.py` manually (and remove the import from `web.py` to prevent include loops). This file can be found in the [mu-python-service template](https://github.com/MikiDi/mu-python-template). As stated earlier, this is not the way you should actually do it, but no better way has been found.
+Since you're not running this inside the docker-container, you should add the `escape_helpers.py` manually (and remove the import from `web.py` to prevent include loops). This file can be found in the [mu-python-service template](https://github.com/MikiDi/mu-python-template), or the edited version of this file I've used while testing can be found in the `illegal` folder (which you have to copy to the project root). They can't be in the root by default, since this will give conflicts with the versions of these files you've got in the Docker container.  As stated earlier, this is not the way you should actually do it, but no better way has been found yet. In the future, it would make more sense to make the analyzer a seperate python package, independent from the Docker framework.
 
 ## Running without Docker?
 You should not do this, but it's often easier to use a debugger. You can do it similar as running the unittests, by having a copy of the helper files (and editting them to prevent import loops and other errors (which you get because you're not supposed to run it like this)). Once those are added, you can run `debug.py` with your favorite python debugger.
