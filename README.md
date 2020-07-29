@@ -24,7 +24,7 @@ get "/schema-analysis-jobs/:id/run", _ do
   forward conn, [], "http://shmdoc-analyzer/schema-analysis-jobs/" <> id <> "/run"
 end
 ```
-The host `shmdoc-analyzer` in the forward URL reflects the name of the file service in the `docker-compose.yml` file.
+The host `shmdoc-analyzer` in the forward URL reflects the name of the analyzer service in the `docker-compose.yml` file.
 
 More information on how to setup a mu.semte.ch project can be found in [mu-project](https://github.com/mu-semtech/mu-project).
 
