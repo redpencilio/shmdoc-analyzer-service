@@ -32,27 +32,27 @@ A complete `docker-compose.yml` and `dispatcher.ex` file for running the entire 
 
 
 ## Development environment
-For development, it is recommended to open up a port to the `shmdoc-analyzer-service`, so you don't have to access everything using the frontend.
-This can be done by adding the following lines to your `docker-compose.dev.yml` file:
+For development, it is recommended to [open up](https://docs.docker.com/config/containers/container-networking/#published-ports) the port used by `shmdoc-analyzer-service`'s http-server', so you can access its endpoints directly instead of through the identifier and dispatcher.
+This is provided for by the following lines in the project's [`docker-compose.dev.yml`](https://github.com/shmdoc/app-shmdoc-osoc-poc/blob/master/docker-compose.dev.yml) file:
 ```yaml
 services:
   shmdoc-analyzer:
     ports:
       - 8891:80
 ```
-By doing this, you can directly access your Flask routes by going to `localhost:8801/route`, where `route` is the corresponding route. 
-By default, the docker image will be loaded from [docker-hub](https://hub.docker.com/r/shmdoc/shmdoc-analyzer-service). While developing, you want to build your docker images from your own version of the repo. This can be done by adding the following lines in a `docker-compose.override.yml` file and passing the `--build` flag when running `docker-compose up`:
+By doing this, you can directly access your Flask routes by going to `localhost:8801/route`, where `route` is the corresponding route.  
+
+By default, the code your service runs, is built into the docker image loaded from [docker-hub](https://hub.docker.com/r/shmdoc/shmdoc-analyzer-service). While developing, it is impractical to have to build a new image on each change. By virtue of Dockers' [volume mounting feature](https://docs.docker.com/storage/bind-mounts/), you can "mount" the application code that you are writing into the running container. This, combined with live-reload capability provided by the mu-semtech template, makes for a development setup that is always running your current code revision. Configuring the described setup can be achieved by adding following supplementary attributes to the `docker-compose.dev.yml`-configuration file :
 ```yaml
 services:
   shmdoc-analyzer:
-    build: "../shmdoc-analyzer-service"
     volumes:
-      - ./data/files:/share
+      - ../shmdoc-analyzer-service:/app
     environment:
       MODE: "development"
 ```
 
-Where `../shmdoc-analyzer-service` is the directory of this repo.
+Where `../shmdoc-analyzer-service` is the directory of this repo. More info on this development-setup can be found in the [template's documentation](https://github.com/MikiDi/mu-python-template/#develop-a-microservice-using-the-template).
 
 After doing this, you can run your development environment using:
 ```bash
