@@ -4,6 +4,7 @@ import helpers
 from pprint import pprint
 from .analyze.file_analyzer import analyze_file
 from numpyencoder import NumpyEncoder
+from datetime import datetime
 
 # from .tests.test import TestFile
 import unittest
@@ -118,9 +119,28 @@ def run_job(uuid):
     for column in result:
         add_column(column, job_uri)
     # pprint(result)
+    current_datetime = (datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
+    insert_finalized = """
+        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+
+        INSERT {{ 
+            GRAPH <http://mu.semte.ch/application> {{
+                ?s ext:finalized "{datetime}".
+            }}
+        }} 
+        WHERE {{
+            GRAPH <http://mu.semte.ch/application> {{
+                ?s mu:uuid "{uuid}" .
+            }}
+        }}
+        """.format(uuid=uuid, datetime=current_datetime)
+    helpers.update(insert_finalized)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
     return flask.jsonify({"Message": "You did it! The columns were succesfully added :-) Enjoy your day!",
                           "Note": "If you don't see anything added, it might be because there were no columns to do the analysis on or the file type is not supported"})
     # Write results
+    
