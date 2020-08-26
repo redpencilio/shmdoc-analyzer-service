@@ -1,12 +1,15 @@
 # Import pandas
 import pandas as pd
+import matplotlib.pyplot as plt
 import math
 import json
+import requests
 from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
 from datetime import datetime
 from .type_checkers import *
+import numpy as np
 
 try:
     from .. import column as column_file  # Use this one when using docker
@@ -239,6 +242,22 @@ def get_numerical_data(column_data):
             continue
     return data
 
+def visualize_data(column_data, column_id, name):
+    """
+    Plots the numerical data on a bar chart and returns an image of the histogram.
+    """
+
+    print("Visualizing column: " + name)
+    values = column_data.value_counts().values
+    names = column_data.value_counts().index
+
+    plt.bar(names, values)
+    plt.ylabel('Occurrences')
+    plt.title(name)
+    
+    plt.savefig("/share/Histograms/histogram_" + column_id + ".png")
+    plt.close()
+
 def analyze(data):
     """
     The main analyze function
@@ -289,6 +308,9 @@ def analyze(data):
             col_obj.median = median(numerical_data)  # statistics.median
             col_obj.min = min(numerical_data)  # min length
             col_obj.max = max(numerical_data)  # max length
+            print("start visualisation")
+            visualize_data(column_data, col_obj.uuid, col_obj.name)
+            print("finished visualisation")
 
         columns.append(col_obj)
 
