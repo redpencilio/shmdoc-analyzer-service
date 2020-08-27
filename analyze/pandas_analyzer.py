@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import math
 import json
 import requests
+import uuid
+import os
+import helpers
 from pprint import pprint
 from collections import Counter
 from numpyencoder import NumpyEncoder
@@ -242,21 +245,93 @@ def get_numerical_data(column_data):
             continue
     return data
 
-def visualize_data(column_data, column_id, name):
+def get_file_uri(filen_name):
+    """
+    Queries the database for Column objects that
+    have the uuid as specified by "uuid".
+    """
+    job_query = """
+        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+
+        SELECT DISTINCT ?file WHERE {{
+             GRAPH <http://mu.semte.ch/application> {{
+                        ?file nfo:fileName "{file_name}" ;
+                         nie:dataSource ?file ;
+             }}
+        }}  OFFSET 0
+            LIMIT 20
+            """.format(uuid=uuid)
+
+    result = helpers.query(job_query)
+
+    file_uri = extract_from_query(result, "file")
+    job_uri = extract_from_query(result, "job")
+
+    return file_uri, job_uri
+
+def insert_file(col_id, file_path):
+    file_resource_uuid = helpers.generate_uuid()
+    file_name = col_id + ".png"
+    file_resource_uri = "share://Histograms/" + file_name
+    upload_resource_uuid = helpers.generate_uuid()
+    upload_resource_uri = "<http://mu.semte.ch/services/file-service/files/{uuid}>".format(uuid=upload_resource_uuid)
+    file_size = os.stat(file_path).st_size
+    current_datetime = datetime.now().isoformat()
+
+    q = """
+        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+        PREFIX dbpedia: <http://dbpedia.org/ontology/>
+        PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
+        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+
+        INSERT DATA {{
+            GRAPH <http://mu.semte.ch/application> {{
+                {uploadUri} a nfo:FileDataObject ;
+                    mu:uuid "{uploadUuid}";
+                    nfo:fileName "{fileName}";
+                    nfo:fileSize "{size}"^^xsd:integer;
+                    dct:created "{created}"^^xsd:dateTime;
+                    dbpedia:fileExtension "png".
+                <{resourceUri}> a nfo:FileDataObject ;
+                    mu:uuid "{resourceUuid}";
+                    nfo:fileName "{fileName}";
+                    nie:dataSource {uploadUri};
+                    dct:created "{created}"^^xsd:dateTime;
+                    nfo:fileSize "{size}"^^xsd:integer;
+                    dbpedia:fileExtension "png".
+                    
+            }}
+        }}
+        """.format(uploadUri=upload_resource_uri, uploadUuid=upload_resource_uuid, resourceUuid=file_resource_uuid, resourceUri=file_resource_uri, fileName=file_name, created=current_datetime, size=file_size)
+    
+    print("Insert file")
+    helpers.query(q)
+
+    return upload_resource_uri
+
+def visualize_data(column_data, column_id, label_x):
     """
     Plots the numerical data on a bar chart and returns an image of the histogram.
     """
 
-    print("Visualizing column: " + name)
+    print("Visualizing column: " + label_x)
     values = column_data.value_counts().values
     names = column_data.value_counts().index
 
     plt.bar(names, values)
     plt.ylabel('Occurrences')
-    plt.title(name)
+    plt.xlabel(label_x)
+    plt.title("Histogram")
     
-    plt.savefig("/share/Histograms/histogram_" + column_id + ".png")
+    path = "/share/Histograms/" + column_id + ".png"
+    plt.savefig(path)
     plt.close()
+
+    return insert_file(column_id, path)
 
 def analyze(data):
     """
@@ -309,7 +384,7 @@ def analyze(data):
             col_obj.min = min(numerical_data)  # min length
             col_obj.max = max(numerical_data)  # max length
             print("start visualisation")
-            visualize_data(column_data, col_obj.uuid, col_obj.name)
+            col_obj.file = visualize_data(column_data, col_obj.uuid, col_obj.name)
             print("finished visualisation")
 
         columns.append(col_obj)
