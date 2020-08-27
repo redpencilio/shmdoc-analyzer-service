@@ -41,3 +41,18 @@ DELETE WHERE {
                 <http://example.com/schema-analysis-jobs/job_uuid> ?p ?o .
      }
 }
+
+
+INSERT DATA {
+  GRAPH <http://mu.semte.ch/application> {
+    <http://example.com/files/> a nfo:FileDataObject ;
+                                                    mu:uuid "" ;
+                                                    nfo:fileName "" ;
+                                                    nie:dataSource "";
+                                                    dct:created "" ;
+                                                    ext:contentType ;
+                                                    dbpedia:fileExtension ;
+                                                    nfo:fileSize ;
+                                                    dct:format.
+  }
+}

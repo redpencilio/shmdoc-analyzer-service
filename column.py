@@ -21,7 +21,8 @@ relation_map = {"uuid": "mu:uuid",
                 "max": "ext:max",
                 "mean": "ext:mean",
                 "median": "ext:median",
-                "common_values": "ext:commonValues"}
+                "common_values": "ext:commonValues",
+                "file": "ext:file"}
 
 def get_relation(attr_name):
     global relation_map
@@ -76,6 +77,7 @@ class Column:
         self.mean = None
         self.median = None
         self.common_values = None
+        self.file = None
 
     def __repr__(self):
         return "<Column {} \"{}\">".format(self.record_count, self.name)
@@ -91,7 +93,11 @@ class Column:
         for attr, value in self.__dict__.items():
             print(attr, value, type(value))
             relation = get_relation(attr)
-            query_str += str_query(uri, relation, value)
+            if relation is 'ext:file':
+                str = "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=value)
+                query_str += str
+            else:
+                query_str += str_query(uri, relation, value)
         query_str += "{job} ext:column {column} . ".format(job=escape_helpers.sparql_escape_uri(job_uri), column=uri)
         query_str += "\t}\n"
         query_str += "}\n"
