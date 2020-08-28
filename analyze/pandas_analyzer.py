@@ -322,7 +322,7 @@ def visualize_data(column_data, column_id, label_x):
     values = column_data.value_counts().values
     names = column_data.value_counts().index
 
-    plt.bar(names, values)
+    plt.bar(names, values, color='#126684')
     plt.ylabel('Occurrences')
     plt.xlabel(label_x)
     plt.title("Histogram")
