@@ -245,32 +245,6 @@ def get_numerical_data(column_data):
             continue
     return data
 
-def get_file_uri(filen_name):
-    """
-    Queries the database for Column objects that
-    have the uuid as specified by "uuid".
-    """
-    job_query = """
-        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
-        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-        PREFIX dct: <http://purl.org/dc/terms/>
-
-        SELECT DISTINCT ?file WHERE {{
-             GRAPH <http://mu.semte.ch/application> {{
-                        ?file nfo:fileName "{file_name}" ;
-                         nie:dataSource ?file ;
-             }}
-        }}  OFFSET 0
-            LIMIT 20
-            """.format(uuid=uuid)
-
-    result = helpers.query(job_query)
-
-    file_uri = extract_from_query(result, "file")
-    job_uri = extract_from_query(result, "job")
-
-    return file_uri, job_uri
-
 def insert_file(col_id, file_path):
     file_resource_uuid = helpers.generate_uuid()
     file_name = col_id + ".png"
@@ -349,7 +323,7 @@ def analyze(data):
         #  For this we should keep track of when the last analysis was
 
         print("Analyzing column {}".format(column))
-        col_obj = column_file.Column(column)
+        col_obj = column_file.Column(column, None)
 
         # Get the data from the current column
         column_data = data[column]
@@ -386,7 +360,7 @@ def analyze(data):
             print("start visualisation")
             col_obj.file = visualize_data(column_data, col_obj.uuid, col_obj.name)
             print("finished visualisation")
-
+                    
         columns.append(col_obj)
 
     return columns

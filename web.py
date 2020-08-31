@@ -4,7 +4,7 @@ import helpers
 from pprint import pprint
 from .analyze.file_analyzer import analyze_file
 from numpyencoder import NumpyEncoder
-from datetime import datetime
+from . import column as column_file
 
 # from .tests.test import TestFile
 import unittest
@@ -41,6 +41,30 @@ def get_job_uri(uuid):
 def extract_from_query(result, variable_to_extract: str):
     return result["results"]["bindings"][0][variable_to_extract]["value"]
 
+def get_job_id(uri):
+    """
+    Fetches job id by uri
+    """
+
+    q = """
+        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+        PREFIX dbpedia: <http://dbpedia.org/ontology/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+        PREFIX nie: <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
+
+        SELECT ?uuid
+        WHERE{{
+            GRAPH <http://mu.semte.ch/application>{{
+            {uri} a ext:SchemaAnalysisJob ;
+                mu:uuid ?uuid.
+            }}
+        }}
+        LIMIT 20
+        """.format(uri=escape_helpers.sparql_escape_uri(uri))
+
+    result = helpers.query(q)
+    return extract_from_query(result, "uuid")
 
 def get_physical_file(uri):
     """
@@ -96,7 +120,7 @@ def add_column(column, uri):
     helpers.query(query)
 
 
-# zelfde formaat voor andere acties (naast 'run')
+# Zelfde formaat voor andere acties (naast 'run')
 @app.route("/schema-analysis-jobs/<uuid>/run", methods=['GET','POST'])
 def run_job(uuid):
     """
@@ -117,26 +141,29 @@ def run_job(uuid):
 
     # Write result to database columns
     for column in result:
+        print("added job_uri")
         add_column(column, job_uri)
-    # pprint(result)
-    current_datetime = (datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')
-    insert_finalized = """
-        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
-        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
-        PREFIX dct: <http://purl.org/dc/terms/>
 
-        INSERT {{ 
-            GRAPH <http://mu.semte.ch/application> {{
-                ?s ext:finalized "{datetime}".
-            }}
-        }} 
-        WHERE {{
-            GRAPH <http://mu.semte.ch/application> {{
-                ?s mu:uuid "{uuid}" .
-            }}
-        }}
-        """.format(uuid=uuid, datetime=current_datetime)
-    helpers.update(insert_finalized)
+    # Resolve conflicts with jsonify of numpy i64
+    app.json_encoder = NumpyEncoder
+    return flask.jsonify({"Message": "You did it! The columns were succesfully added :-) Enjoy your day!",
+                          "Note": "If you don't see anything added, it might be because there were no columns to do the analysis on or the file type is not supported"})
+    # Write results
+    
+@app.route("/column/<uuid>/reanalyse", methods=['GET','POST'])
+def reanalyse_column(uuid):
+    """
+    Reanalyses given column
+    """
+    print("Reanalysing column with uuid ", uuid)
+
+    # Query file from database and get jobId
+    col_obj = Column(None, uuid)
+    job_id = get_job_id(col_obj.job)  
+    file_location, uri, extension, job_uri = get_job_file(job_id)
+    # Read file
+    # Processing
+    result = analyze_file(file_location, extension)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
