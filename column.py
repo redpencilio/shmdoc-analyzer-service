@@ -24,7 +24,8 @@ relation_map = {"uuid": "mu:uuid",
                 "median": "ext:median",
                 "common_values": "ext:commonValues",
                 "file": "ext:file",
-                "job": "ext:column"}
+                "job": "ext:column",
+                "unit_specific_info": "ext:unitSpecificInfo"}
 
 def get_relation(attr_name):
     global relation_map
@@ -66,9 +67,7 @@ def extract_from_query(result, variable_to_extract: str):
         return None
 
 
-
-class Column:
-    def get_column_by_uuid(self, uuid):
+def get_column_by_uuid(uuid):
         """
         Queries the database for all the data of the column with given uuid
         """
@@ -90,11 +89,11 @@ class Column:
                                 ext:mean ?mean;
                                 ext:median ?median;
                                 ext:commonValues ?commonValues.
-                                ext:column ?job
-                            OPTIONAL {{?columns ext:dataType ?dataType.}}.
-                            OPTIONAL {{?columns ext:quantityKind ?quantityKind.}}.
-                            OPTIONAL {{?columns ext:unitSpecificInfo ?unitSpecificInfo.}}.
-                            OPTIONAL {{?columns ext:unit ?unit.}}.
+                            ?job ext:column ?column.
+                            OPTIONAL {{?column ext:dataType ?dataType.}}.
+                            OPTIONAL {{?column ext:quantityKind ?quantityKind.}}.
+                            OPTIONAL {{?column ext:unitSpecificInfo ?unitSpecificInfo.}}.
+                            OPTIONAL {{?column ext:unit ?unit.}}.
 
                 }}
             }}
@@ -102,23 +101,11 @@ class Column:
 
         result = helpers.query(query)
         print("RESULT: ", result)
+        return result
+        
 
-        self.name = extract_from_query(result, "name")    
-        self.description = extract_from_query(result, "description")
-        self.note = extract_from_query(result, "note")
-        self.data_type = extract_from_query(result, "dataType")
-        self.quantity_kind = extract_from_query(result, "quantityKind")
-        self.unit = extract_from_query(result, "unit")
-        self.record_count = extract_from_query(result, "recordCount")
-        self.missing_count = extract_from_query(result, "missingCount")
-        self.null_count = extract_from_query(result, "nullCount")
-        self.min = extract_from_query(result, "min")
-        self.max = extract_from_query(result, "max")
-        self.mean = extract_from_query(result, "mean")
-        self.median = extract_from_query(result, "median")
-        self.common_values = extract_from_query(result, "commonValues")
-        self.job = extract_from_query(result, "job")
 
+class Column:
     def __init__(self, name = None, uuid = None):
         """
         Two ways to iniialize this object:
@@ -130,7 +117,23 @@ class Column:
 
         if (uuid is not None and name is None):
             self.uuid = uuid
-            get_column_by_uuid(uuid)
+            result = get_column_by_uuid(uuid)
+            self.name = extract_from_query(result, "name")    
+            self.description = extract_from_query(result, "description")
+            self.note = extract_from_query(result, "note")
+            self.data_type = extract_from_query(result, "dataType")
+            self.quantity_kind = extract_from_query(result, "quantityKind")
+            self.unit = extract_from_query(result, "unit")
+            self.record_count = extract_from_query(result, "recordCount")
+            self.missing_count = extract_from_query(result, "missingCount")
+            self.null_count = extract_from_query(result, "nullCount")
+            self.min = extract_from_query(result, "min")
+            self.max = extract_from_query(result, "max")
+            self.mean = extract_from_query(result, "mean")
+            self.median = extract_from_query(result, "median")
+            self.common_values = extract_from_query(result, "commonValues")
+            self.job = extract_from_query(result, "job")
+            self.unit_specific_info = extract_from_query(result, "unitSpecificInfo")
         else:
             self.uuid = helpers.generate_uuid()
             self.name = name    
@@ -151,6 +154,7 @@ class Column:
             self.common_values = None
             self.file = None
             self.job = None
+            self.unit_specific_info = None
 
     def __repr__(self):
         return "<Column {} \"{}\">".format(self.record_count, self.name)
@@ -172,7 +176,7 @@ class Column:
             else:
                 query_str += str_query(uri, relation, value)
         query_str += "{job} ext:column {column} . ".format(job=escape_helpers.sparql_escape_uri(job_uri), column=uri)
-        query_str += """{uri} ext:finalized "{dateTime}"^^xsd:dateTime . """.format(uri=uri, dateTime=datetime.now().isoformat())
+        query_str += """{uri} ext:finalized "{dateTime}"^^xsd:dateTime . """.format(uri=uri, dateTime=(datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'))
         query_str += "\t}\n"
         query_str += "}\n"
 

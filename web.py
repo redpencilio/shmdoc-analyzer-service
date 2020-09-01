@@ -3,8 +3,9 @@ import escape_helpers
 import helpers
 from pprint import pprint
 from .analyze.file_analyzer import analyze_file
+from .analyze.file_analyzer import reanalyze_file
 from numpyencoder import NumpyEncoder
-from . import column as column_file
+from .column import Column
 
 # from .tests.test import TestFile
 import unittest
@@ -56,8 +57,7 @@ def get_job_id(uri):
         SELECT ?uuid
         WHERE{{
             GRAPH <http://mu.semte.ch/application>{{
-            {uri} a ext:SchemaAnalysisJob ;
-                mu:uuid ?uuid.
+            {uri} mu:uuid ?uuid.
             }}
         }}
         LIMIT 20
@@ -159,11 +159,16 @@ def reanalyse_column(uuid):
 
     # Query file from database and get jobId
     col_obj = Column(None, uuid)
+    print(col_obj)
     job_id = get_job_id(col_obj.job)  
     file_location, uri, extension, job_uri = get_job_file(job_id)
     # Read file
     # Processing
-    result = analyze_file(file_location, extension)
+    result = reanalyze_file(file_location, extension, col_obj.unit, col_obj.name)
+    print("reanalyzed file")
+    col_obj.unit_specific_info = result
+
+    add_column(col_obj, job_uri)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
