@@ -7,6 +7,8 @@ from .analyze.file_analyzer import reanalyze_file
 from numpyencoder import NumpyEncoder
 from .column import Column
 from datetime import datetime
+from pytz import timezone
+
 
 
 # from .tests.test import TestFile
@@ -138,7 +140,7 @@ def insert_finalized(uuid):
                 ?s mu:uuid {uuid} .
             }}
         }}
-        """.format(uuid=escape_helpers.sparql_escape(uuid), datetime=escape_helpers.sparql_escape(datetime.now().isoformat()))
+        """.format(uuid=escape_helpers.sparql_escape(uuid), datetime=escape_helpers.sparql_escape(datetime.now(timezone('Europe/Brussels')).isoformat()))
     helpers.update(q)
 
 

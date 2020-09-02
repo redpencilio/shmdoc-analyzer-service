@@ -14,6 +14,7 @@ from datetime import datetime
 from .type_checkers import *
 import numpy as np
 from ..illegal import escape_helpers
+from pytz import timezone
 
 try:
     from .. import column as column_file  # Use this one when using docker
@@ -280,7 +281,7 @@ def insert_file(col_id, file_path):
                     
             }}
         }}
-        """.format(uploadUri=upload_resource_uri, uploadUuid=upload_resource_uuid, resourceUuid=file_resource_uuid, resourceUri=file_resource_uri, fileName=file_name, created=datetime.now().isoformat(), size=file_size)
+        """.format(uploadUri=upload_resource_uri, uploadUuid=upload_resource_uuid, resourceUuid=file_resource_uuid, resourceUri=file_resource_uri, fileName=file_name, created=datetime.now(timezone('Europe/Brussels')).isoformat(), size=file_size)
     
     print("Insert file")
     helpers.query(q)
