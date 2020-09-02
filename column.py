@@ -176,7 +176,6 @@ class Column:
             else:
                 query_str += str_query(uri, relation, value)
         query_str += "{job} ext:column {column} . ".format(job=escape_helpers.sparql_escape_uri(job_uri), column=uri)
-        query_str += """{uri} ext:finalized "{dateTime}"^^xsd:dateTime . """.format(uri=uri, dateTime=(datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'))
         query_str += "\t}\n"
         query_str += "}\n"
 

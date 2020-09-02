@@ -13,6 +13,7 @@ from numpyencoder import NumpyEncoder
 from datetime import datetime
 from .type_checkers import *
 import numpy as np
+from ..illegal import escape_helpers
 
 try:
     from .. import column as column_file  # Use this one when using docker
@@ -252,7 +253,6 @@ def insert_file(col_id, file_path):
     upload_resource_uuid = helpers.generate_uuid()
     upload_resource_uri = "<http://mu.semte.ch/services/file-service/files/{uuid}>".format(uuid=upload_resource_uuid)
     file_size = os.stat(file_path).st_size
-    current_datetime = datetime.now().isoformat()
 
     q = """
         PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
@@ -280,7 +280,7 @@ def insert_file(col_id, file_path):
                     
             }}
         }}
-        """.format(uploadUri=upload_resource_uri, uploadUuid=upload_resource_uuid, resourceUuid=file_resource_uuid, resourceUri=file_resource_uri, fileName=file_name, created=current_datetime, size=file_size)
+        """.format(uploadUri=upload_resource_uri, uploadUuid=upload_resource_uuid, resourceUuid=file_resource_uuid, resourceUri=file_resource_uri, fileName=file_name, created=datetime.now().isoformat(), size=file_size)
     
     print("Insert file")
     helpers.query(q)

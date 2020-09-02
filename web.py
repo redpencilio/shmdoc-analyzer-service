@@ -6,6 +6,8 @@ from .analyze.file_analyzer import analyze_file
 from .analyze.file_analyzer import reanalyze_file
 from numpyencoder import NumpyEncoder
 from .column import Column
+from datetime import datetime
+
 
 # from .tests.test import TestFile
 import unittest
@@ -120,6 +122,26 @@ def add_column(column, uri):
     helpers.query(query)
 
 
+def insert_finalized(uuid):
+    q = """
+        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
+        PREFIX mu: <http://mu.semte.ch/vocabularies/core/>
+        PREFIX dct: <http://purl.org/dc/terms/>
+
+        INSERT {{ 
+            GRAPH <http://mu.semte.ch/application> {{
+                ?s ext:finalized {datetime}.
+            }}
+        }} 
+        WHERE {{
+            GRAPH <http://mu.semte.ch/application> {{
+                ?s mu:uuid {uuid} .
+            }}
+        }}
+        """.format(uuid=escape_helpers.sparql_escape(uuid), datetime=escape_helpers.sparql_escape(datetime.now().isoformat()))
+    helpers.update(q)
+
+
 # Zelfde formaat voor andere acties (naast 'run')
 @app.route("/schema-analysis-jobs/<uuid>/run", methods=['GET','POST'])
 def run_job(uuid):
@@ -143,6 +165,8 @@ def run_job(uuid):
     for column in result:
         print("added job_uri")
         add_column(column, job_uri)
+
+    insert_finalized(uuid)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
@@ -169,6 +193,8 @@ def reanalyse_column(uuid):
     col_obj.unit_specific_info = result
 
     add_column(col_obj, job_uri)
+
+    insert_finalized(job_id)
 
     # Resolve conflicts with jsonify of numpy i64
     app.json_encoder = NumpyEncoder
