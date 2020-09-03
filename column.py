@@ -170,7 +170,7 @@ class Column:
         for attr, value in self.__dict__.items():
             print(attr, value, type(value))
             relation = get_relation(attr)
-            if relation == 'ext:file':
+            if relation == 'ext:file' and value is not None:
                 str = "\t\t{uri} {relation} {value} . \n".format(uri=uri, relation=relation, value=value)
                 query_str += str
             else:

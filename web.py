@@ -175,6 +175,7 @@ def run_job(uuid):
     return flask.jsonify({"Message": "You did it! The columns were succesfully added :-) Enjoy your day!",
                           "Note": "If you don't see anything added, it might be because there were no columns to do the analysis on or the file type is not supported"})
     # Write results
+
     
 @app.route("/column/<uuid>/reanalyse", methods=['GET','POST'])
 def reanalyse_column(uuid):
@@ -192,6 +193,9 @@ def reanalyse_column(uuid):
     # Processing
     result = reanalyze_file(file_location, extension, col_obj.unit, col_obj.name)
     print("reanalyzed file")
+
+    #TODO Remove previous unit specific info of column
+
     col_obj.unit_specific_info = result
 
     add_column(col_obj, job_uri)

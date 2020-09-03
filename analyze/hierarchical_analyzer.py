@@ -79,10 +79,15 @@ def xml_to_dataframe(input_file):
 
 
 def json_to_dataframe(input_file):
+    print("conversion")
     # Convert the json file to a nested dictionary
     with open(input_file) as fd:
         doc = fd.read()
+    print("read")
+    print(doc)
     data = json.loads(doc)
+    print("load")
     # Flatten the nested dictionary
     normalized = normalize_to_longest_list(data)
+    print("Normalized")
     return normalized

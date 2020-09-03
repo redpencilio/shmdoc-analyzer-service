@@ -6,6 +6,7 @@ import json
 import requests
 import uuid
 import os
+import os.path
 import helpers
 from pprint import pprint
 from collections import Counter
@@ -305,8 +306,10 @@ def visualize_data(column_data, column_id, label_x):
     path = "/share/Histograms/" + column_id + ".png"
     plt.savefig(path)
     plt.close()
-
-    return insert_file(column_id, path)
+    if os.path.isfile(path) :
+        return insert_file(column_id, path)
+    else:
+        return None
 
 def analyze(data):
     """

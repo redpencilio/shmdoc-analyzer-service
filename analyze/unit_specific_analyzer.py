@@ -40,4 +40,4 @@ def unit_specific_analyzer(unitUri, data):
     if (unit == "degrees_celsius"):
         return analyze_celsius(data)
     else:
-        return "No specific information available."
+        return None
